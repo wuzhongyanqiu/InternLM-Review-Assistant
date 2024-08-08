@@ -86,14 +86,14 @@ pip install -r requirements.txt
 ]
 ```
 ## 三、训练和部署
-1. 将`./finetune_configs/internlm2_chat_7b/internlm2_chat_7b_qlora_interview_data.py`中的数据集路径和模型路径替换为本地路径，根据显存大小调整`max_length`或`batch_size`，根据数据量和训练的效果调整`lr`等其他参数。
+1. 将`./finetune/internlm2_chat_7b/internlm2_chat_7b_qlora_interview_data.py`中的数据集路径和模型路径替换为本地路径，根据显存大小调整`max_length`或`batch_size`，根据数据量和训练的效果调整`lr`等其他参数。
 2. 使用命令进行训练：
 ```
-xtuner train finetune_configs/internlm2_chat_7b/internlm2_chat_7b_qlora_interview_data.py --deepspeed deepspeed_zero2
+xtuner train finetune/internlm2_chat_7b/internlm2_chat_7b_qlora_interview_data.py --deepspeed deepspeed_zero2
 ```
 3. 转换模型为hf格式：
 ```
-xtuner convert pth_to_hf ./finetune_configs/internlm2_chat_7b/internlm2_chat_7b_qlora_mock_data.py \
+xtuner convert pth_to_hf ./finetune/internlm2_chat_7b/internlm2_chat_7b_qlora_mock_data.py \
                          ./work_dirs/internlm2_chat_7b_qlora_interview_data/iter_1500.pth \
                          ./work_dirs/internlm2_chat_7b_qlora_interview_data/iter_1500_hf
 ```
