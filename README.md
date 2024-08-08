@@ -87,28 +87,34 @@ pip install -r requirements.txt
 ```
 ## 三、训练和部署
 1. 将`./finetune/internlm2_chat_7b/internlm2_chat_7b_qlora_interview_data.py`中的数据集路径和模型路径替换为本地路径，根据显存大小调整`max_length`或`batch_size`，根据数据量和训练的效果调整`lr`等其他参数。
-2. 使用命令进行训练：
+2. 使用命令进行训练，自定义评估问题，可以手动早停：
 ```
 xtuner train finetune/internlm2_chat_7b/internlm2_chat_7b_qlora_interview_data.py --deepspeed deepspeed_zero2
 ```
 3. 转换模型为hf格式：
 ```
+export MKL_SERVICE_FORCE_INTEL=1
+export MKL_THREADING_LAYER=GNU
 xtuner convert pth_to_hf ./finetune/internlm2_chat_7b/internlm2_chat_7b_qlora_mock_data.py \
-                         ./work_dirs/internlm2_chat_7b_qlora_interview_data/iter_1500.pth \
-                         ./work_dirs/internlm2_chat_7b_qlora_interview_data/iter_1500_hf
+                         ./finetune/work_dirs/internlm2_chat_7b_qlora_interview_data/iter_450.pth \
+                         ./finetune/work_dirs/internlm2_chat_7b_qlora_interview_data/iter_450_hf
 ```
 4. 合并模型：
 ```
-xtuner convert merge ./models/internlm2-chat-7b ./work_dirs/internlm2_chat_7b_qlora_interview_data/iter_1500_hf ./work_dirs/internlm2_chat_7b_qlora_interview_data/iter_1500_merge --max-shard-size 2GB
+xtuner convert merge ./models/internlm2-chat-7b ./fintune/work_dirs/internlm2_chat_7b_qlora_interview_data/iter_450_hf ./fintune/work_dirs/internlm2_chat_7b_qlora_interview_data/iter_450_merge --max-shard-size 2GB
 ```
 5. Imdeploy部署
 ```
 pip install lmdeploy
-python -m lmdeploy.pytorch.chat ./work_dirs/internlm2_chat_7b_qlora_interview_data/iter_1500_merge  \
+python -m lmdeploy.pytorch.chat ./finetune/work_dirs/internlm2_chat_7b_qlora_interview_data/iter_450_merge  \
     --max_new_tokens 256 \
     --temperture 0.8 \
     --top_p 0.95 \
     --seed 0
+```
+6. 进行4bit量化
+```
+lmdeploy lite auto_awq /root/Mock-Interviewer/fintune/work_dirs/internlm2_chat_7b_qlora_interview_data/iter_450_merge --work-dir /root/Mock-Interviewer/fintune/work_dirs/internlm2_chat_7b_qlora_interview_data/iter_450_merge_4bit
 ```
 
 
