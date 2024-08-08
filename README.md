@@ -116,7 +116,18 @@ python -m lmdeploy.pytorch.chat ./finetune/work_dirs/internlm2_chat_7b_qlora_int
 ```
 lmdeploy lite auto_awq /root/Mock-Interviewer/fintune/work_dirs/internlm2_chat_7b_qlora_interview_data/iter_450_merge --work-dir /root/Mock-Interviewer/fintune/work_dirs/internlm2_chat_7b_qlora_interview_data/iter_450_merge_4bit
 ```
-
+7. 测试速度
+```
+python ./benchmark/benchmark_transformer.py
+python ./benchmark/benchmark_lmdeploy.py 
+```
+得到速度对比，可以看到使用LMdeploy的Turbomind和4bit量化模型可以明显提升推理速度。
+||||
+|-|-|-|
+|Model|Toolkit|speed(words/s)
+mock-interviewer-7b|transformer|66.378
+mock-interviewer-7b|LMDeploy(Turbomind)|145.431
+mock-interviewer-7b-4bit|LMDeploy(Turbomind)|343.990
 
 
 ## 四、
