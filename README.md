@@ -1,5 +1,9 @@
 # InternLM-Mock-Interviewer
 基于InternLM的模拟面试官项目，欢迎大家也来参加书生大模型实战营项目[http://github.com/internLM/tutorial](http://github.com/internLM/tutorial)
+
+# 架构图
+![架构图](./assets/architecture_diagram.png)
+
 ## 一、环境搭建
 1. Clone本项目
 ```
@@ -89,34 +93,34 @@ pip install -r requirements.txt
 1. 将`./finetune/internlm2_chat_7b/internlm2_chat_7b_qlora_interview_data.py`中的数据集路径和模型路径替换为本地路径，根据显存大小调整`max_length`或`batch_size`，根据数据量和训练的效果调整`lr`等其他参数。
 2. 使用命令进行训练，自定义评估问题，可以手动早停：
 ```
-xtuner train finetune/internlm2_chat_7b/internlm2_chat_7b_qlora_interview_data.py --deepspeed deepspeed_zero2
+xtuner train finetune/internlm2_chat_7b_qlora_interview_data.py --deepspeed deepspeed_zero2
 ```
 3. 转换模型为hf格式：
 ```
 export MKL_SERVICE_FORCE_INTEL=1
 export MKL_THREADING_LAYER=GNU
-xtuner convert pth_to_hf ./finetune/internlm2_chat_7b/internlm2_chat_7b_qlora_mock_data.py \
-                         ./finetune/work_dirs/internlm2_chat_7b_qlora_interview_data/iter_450.pth \
-                         ./finetune/work_dirs/internlm2_chat_7b_qlora_interview_data/iter_450_hf
+xtuner convert pth_to_hf ./finetune/internlm2_chat_7b_qlora_interview_data.py \
+                         ./work_dirs/internlm2_chat_7b_qlora_interview_data/iter_250.pth \
+                         ./work_dirs/internlm2_chat_7b_qlora_interview_data/iter_250_hf
 ```
 4. 合并模型：
 ```
-xtuner convert merge ./models/internlm2-chat-7b ./fintune/work_dirs/internlm2_chat_7b_qlora_interview_data/iter_450_hf ./fintune/work_dirs/internlm2_chat_7b_qlora_interview_data/iter_450_merge --max-shard-size 2GB
+xtuner convert merge ./models/internlm2-chat-7b ./work_dirs/internlm2_chat_7b_qlora_interview_data/iter_250_hf ./work_dirs/internlm2_chat_7b_qlora_interview_data/iter_250_merge --max-shard-size 2GB
 ```
-5. Imdeploy部署
+5. Imdeploy部署-可选
 ```
 pip install lmdeploy
-python -m lmdeploy.pytorch.chat ./finetune/work_dirs/internlm2_chat_7b_qlora_interview_data/iter_450_merge  \
+python -m lmdeploy.pytorch.chat ./work_dirs/internlm2_chat_7b_qlora_interview_data/iter_250_merge  \
     --max_new_tokens 256 \
     --temperture 0.8 \
     --top_p 0.95 \
     --seed 0
 ```
-6. 进行4bit量化
+6. 进行4bit量化-可选
 ```
-lmdeploy lite auto_awq /root/Mock-Interviewer/fintune/work_dirs/internlm2_chat_7b_qlora_interview_data/iter_450_merge --work-dir /root/Mock-Interviewer/fintune/work_dirs/internlm2_chat_7b_qlora_interview_data/iter_450_merge_4bit
+lmdeploy lite auto_awq /root/Mock-Interviewer/work_dirs/internlm2_chat_7b_qlora_interview_data/iter_250_merge --work-dir /root/Mock-Interviewer/work_dirs/internlm2_chat_7b_qlora_interview_data/iter_250_merge_4bit
 ```
-7. 测试速度
+7. 测试速度-可选
 ```
 python ./benchmark/benchmark_transformer.py
 python ./benchmark/benchmark_lmdeploy.py 
@@ -130,8 +134,14 @@ mock-interviewer-7b|LMDeploy(Turbomind)|145.431
 mock-interviewer-7b-4bit|LMDeploy(Turbomind)|343.990
 
 
-## 四、
+## 四、RAG检索增强生成
+
 ## 模型合并
 ## 五、RAG向量数据库
 使用向量召回、文本召回的两路召回模式，对召回组块进行重排序，构建新的`prompt`。
-
+## 六、Agent智能体
+百度地图的路线规划、周边区域
+谷歌搜索
+日程，自动添加日程，然后有一个ui是自动提示日程的（根据添加实时更新和删除）
+当前时间
+天气
