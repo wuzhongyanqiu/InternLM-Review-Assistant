@@ -4,21 +4,19 @@
 # 架构图
 ![架构图](./assets/architecture_diagram.png)
 
+# Demo
+## 面试题复习
+## 模拟面试
+## Agent助手
+
+# 使用说明
+该项目的一站式使用正在构建中，当前代码过于乱还没来得及重构
+
 # 流程
-## 一、环境搭建
-1. Clone本项目
-```
-git clone https://github.com/wuzhongyanqiu/InternLM-Mock-Interviewer.git
-cd InterLM-Mock-Interviewer
-```
-2. 创建虚拟环境
-```
-conda env create -f environment.yml
-conda activate mock-interviewer
-pip install -r requirements.txt
-```
-## 二、数据集构建
-本项目当前版本的数据集采用个人整理总结的大模型面试相关数据和ChatGLM & Qwen & Erniebot的生成数据集，当前开源了全部数据生成、处理方式和部分生成数据集，数据集格式如下：
+
+## 一、微调intern2
+### 数据集构建
+本项目当前版本的数据集采用个人整理总结的大模型面试相关数据和ChatGLM & Qwen & Erniebot的生成数据集，当前开源了全部数据生成、处理方式和生成数据集，数据集格式如下：
 - 单轮对话数据
 ```
 [
@@ -67,7 +65,7 @@ pip install -r requirements.txt
 ...
 ]
 ```
-## 三、训练和部署
+### 训练和部署
 1. 将`./finetune/internlm2_chat_7b/internlm2_chat_7b_qlora_interview_data.py`中的数据集路径和模型路径替换为本地路径，根据显存大小调整`max_length`或`batch_size`，根据数据量和训练的效果调整`lr`等其他参数。
 2. 使用命令进行训练，自定义评估问题，可以手动早停：
 ```
@@ -111,15 +109,60 @@ mock-interviewer-7b|transformer|66.378
 mock-interviewer-7b|LMDeploy(Turbomind)|145.431
 mock-interviewer-7b-4bit|LMDeploy(Turbomind)|343.990
 
+## 二、RAG检索增强生成
 
-## 四、RAG检索增强生成
-使用向量召回、文本召回的两路召回模式，对召回组块进行重排序，构建新的`prompt`，使回答更加具有可解释性，契合个人回答的风格
 ![RAG流程图](./assets/rag.png)
 
-## 五、Agent智能体
+使用向量召回、文本召回的两路召回模式，对召回组块进行重排序，构建新的`prompt`，使回答更加具有可解释性，契合个人回答的风格
+
+## 三、Agent智能体
+
+![Agent流程图](./assets/agent.png)
+
 实现如下Agent功能：
-- 搜索引擎
-- 实时天气
-- 地点周边
-- 论文搜索
-- 主页生成
+- 搜索引擎：利用搜索引擎回答问题
+- 实时天气：查询某个地点实时天气
+- 地点周边：查询某个地点的周边环境
+- 论文搜索：arxiv论文搜索
+- 主页生成：根据简历生成个人主页
+
+## 四、其他功能
+- TTS
+- ASR
+- 数字人
+
+## 五、前后端分离
+- ASR服务：
+```bash
+uvicorn server.asr.asr_server:app --host 0.0.0.0 --port 8001
+```
+- TTS服务：
+```bash
+uvicorn server.tts.tts_server:app --host 0.0.0.0 --port 8002
+```
+- Mock-Interviewer服务：
+```bash
+uvicorn server.base.base_server:app --host 0.0.0.0 --port 8003
+```
+- RAG等工具的服务：
+```bash
+uvicorn server.tools.tools_server:app --host 0.0.0.0 --port 8004
+```
+
+## 六、计划
+- 重构代码
+- 数据集优化
+- 偏好对齐
+- 评估
+- 知识图谱
+- 安卓端部署
+- 语音交流
+- 解析视频
+
+## 七、后记
+本项目是个人的一个学习项目，由于刚刚起步，因此整个项目的架构都还不明晰，包括很多代码规范和异常处理都还没有做，项目目前也只有本人才能够跑起来。
+
+但随着本人能力的不断迭代，此项目也会随之优化，期望其能变成一个完整的、有意义的项目。
+
+作为一个刚入行几个月的新手，把学到的知识利用起来，转换为自己的兴趣是很有意义的事情，非常感谢上海人工智能实验室主办的书生大模型实战营，为本人做一个属于自己的开源项目提供了丰富的算力和技术支持，非常感谢！
+
