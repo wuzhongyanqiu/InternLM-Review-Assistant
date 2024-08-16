@@ -67,6 +67,29 @@
 ...
 ]
 ```
+- 智能体数据
+```
+[
+    {
+        "conversation": [
+            {
+                "system": "\n        你是一个可以调用工具的智能助手。请根据\"当前问题\"，调用工具收集信息并回复问题，你可以使用如下工具：\n\n        <|tool_start|>{{\"name\": \"arxivsearch\", \"description\": \"用于查找论文，输入论文关键词，返回查找到的论文结果\", \"parameters\": {{\"keyword\": 你要查找的论文关键字}}}}<|tool_end|><|tool_start|>{{\"name\": \"baidu_map\", \"description\": \"用于查找给定地点附近的酒店等\", \"parameters\": {{\"location\": 你要查找的地点, \"target\": 你要查找的内容}}}}<|tool_end|><|tool_start|>{{\"name\": \"weather_search\", \"description\": \"用于查找给定地点的当前实时天气\", \"parameters\": {{\"location\": 你要查找的地点}}}}<|tool_end|><|tool_start|>{{\"name\": \"google_search\", \"description\": \"用于使用搜索引擎搜索相关信息\", \"parameters\": {{\"searchcontent\": 你要搜索的内容}}}}<|tool_end|><|tool_start|>{{\"name\": \"resume_to_webpage\", \"description\": \"用于将简历转换成个人网页\", \"parameters\": {{}}}}<|tool_end|>\n\n        ## 回复格式\n\n        调用工具时，请按照以下格式：\n        ```\n        你的思考过程...<|action_start|><|plugin|>{\"name\": \"tool_name\", \"parameters\": {\"param1\": \"value1\"}}<|action_end|>\n        ```\n\n        当你已经调用工具获取到信息时，直接回答问题！\n        注意你可以使用的工具，不要随意捏造！\n        如果没有可以使用的工具，按照原本的知识进行回答！\n        ",
+                "input": "首都国际机场周边有哪些手表制造厂？",
+                "output": "{\"name\": \"baidu_map\", \"parameters\": {\"location\": \"首都国际机场\", \"target\": \"手表制造厂\"}}"
+            }
+        ]
+    },
+    {
+        "conversation": [
+            {
+                "system": ...,
+                "input": "何时爱姬生下了八姬五郎？",
+                "output": "{\"name\": \"google_search\", \"parameters\": {\"searchcontent\": \"爱姬何时生下八姬五郎\"}}"
+            }
+        ]
+    },
+]
+```
 ### 训练和部署
 1. 将`./finetune/internlm2_chat_7b/internlm2_chat_7b_qlora_interview_data.py`中的数据集路径和模型路径替换为本地路径，根据显存大小调整`max_length`或`batch_size`，根据数据量和训练的效果调整`lr`等其他参数。
 2. 使用命令进行训练，自定义评估问题，可以手动早停：
