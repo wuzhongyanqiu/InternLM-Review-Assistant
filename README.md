@@ -4,18 +4,46 @@
 # 架构图
 ![架构图](./assets/architecture_diagram.png)
 
-# 使用说明
-该项目的一站式使用正在构建中，当前代码过于乱还没来得及重构
-
-# 效果DEMO
+# 效果 DEMO
 ![DEMO1](./assets/demo1.png)
 ![DEMO2](./assets/demo2.png)
 ![DEMO3](./assets/demo3.png)
 ![DEMO4](./assets/demo4.png)
 ![DEMO5](./assets/demo5.png)
+
+# 快速使用
+## 本地部署
+```bash
+git clone https://github.com/wuzhongyanqiu/InternLM-Interview-Assistant.git
+cd InternLM-Interview-Assistant
+conda env create -f environment.yml
+conda activate interview-assistant
+pip install -r requirements.txt
+cd web
+streamlit run streamlitdemo.py
+```
+
+## 前后端分离启动
+- ASR服务：
+```bash
+uvicorn server.asr.asr_server:app --host 0.0.0.0 --port 8001
+```
+- TTS服务：
+```bash
+uvicorn server.tts.tts_server:app --host 0.0.0.0 --port 8002
+```
+- Mock-Interviewer服务：
+```bash
+uvicorn server.base.base_server:app --host 0.0.0.0 --port 8003
+```
+- RAG等工具的服务：
+```bash
+uvicorn server.tools.tools_server:app --host 0.0.0.0 --port 8004
+```
+
 # 流程
 
-## 一、微调intern2
+## 一、微调 intern2
 ### 数据集构建
 本项目当前版本的数据集采用个人整理总结的大模型面试相关数据和ChatGLM & Qwen & Erniebot的生成数据集，当前开源了全部数据生成、处理方式和生成数据集，数据集格式如下：
 - 多轮对话数据
@@ -151,29 +179,7 @@ mock-interviewer-7b-4bit|LMDeploy(Turbomind)|343.990
 - 论文搜索：arxiv论文搜索
 - 主页生成：根据简历生成个人主页
 
-## 四、其他功能
-- TTS
-- ASR
-
-## 五、前后端分离
-- ASR服务：
-```bash
-uvicorn server.asr.asr_server:app --host 0.0.0.0 --port 8001
-```
-- TTS服务：
-```bash
-uvicorn server.tts.tts_server:app --host 0.0.0.0 --port 8002
-```
-- Mock-Interviewer服务：
-```bash
-uvicorn server.base.base_server:app --host 0.0.0.0 --port 8003
-```
-- RAG等工具的服务：
-```bash
-uvicorn server.tools.tools_server:app --host 0.0.0.0 --port 8004
-```
-
-## 六、计划
+## 四、计划
 - 重构代码
 - 数据集优化
 - 微调模式
