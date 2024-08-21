@@ -19,8 +19,7 @@ cd InternLM-Interview-Assistant
 conda env create -f environment.yml
 conda activate interview-assistant
 pip install -r requirements.txt
-cd web
-streamlit run streamlitdemo.py
+streamlit run app.py
 ```
 
 ## 前后端分离启动

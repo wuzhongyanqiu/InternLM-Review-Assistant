@@ -1,5 +1,3 @@
-import sys
-sys.path.append('../')  # 添加父目录到系统路径
 import streamlit as st
 import torch
 from torch import nn
@@ -202,7 +200,7 @@ def prepare_agentpage():
 
 def prepare_sidebar_config():
     from PIL import Image
-    image = Image.open('image.png')
+    image = Image.open('./assets/app_image.png')
     with st.sidebar:
         st.image(image, width=250)
         # Radio 按钮选择页面
