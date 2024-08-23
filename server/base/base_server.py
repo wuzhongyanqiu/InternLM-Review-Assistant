@@ -1,10 +1,34 @@
 from fastapi import FastAPI
 from pydantic import BaseModel
 from lmdeploy import pipeline
-from ..server_configs import ServerConfigs
+from dataclasses import asdict, dataclass
+from typing import Callable, List, Optional
+import os
+
+current_file_path = os.path.abspath(__file__)
+current_dir = os.path.dirname(current_file_path)
+# model路径
+BASE_MODEL_PATH = os.path.join(current_dir, '../../models/InternLM-Interview-Assistant')
+
+@dataclass
+class GenerationConfig:
+    # this config is used for chat to provide more diversity
+    n: int = 1
+    max_new_tokens: int = 2048
+    top_p: float = 1.0
+    top_k: int = 1
+    temperature: float = 0.8
+    repetition_penalty: float = 1.0
+    ignore_eos: bool = False
+    random_seed: int = None
+    stop_words: List[str] = None
+    bad_words: List[str] = None
+    min_new_tokens: int = None
+    skip_special_tokens: bool = True
+    logprobs: int = None
 
 def load_model():
-    model = pipeline(ServerConfigs.BASE_MODEL_PATH)
+    model = pipeline(BASE_MODEL_PATH, model_name="internlm2-chat-7b")
     return model
 
 app = FastAPI()
@@ -13,7 +37,8 @@ model = load_model()
 from fastapi.responses import StreamingResponse
 
 async def get_streaming_data(inputs):
-    for result in model.stream_infer(inputs):
+    generation_config = GenerationConfig()
+    for result in model.stream_infer(inputs, gen_config=generation_config):
         yield result.text
 
 class BaseItem(BaseModel):

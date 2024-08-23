@@ -1,3 +1,6 @@
+from config import Configs
+import sys
+sys.path.append(Configs.PROJECT_ROOT)
 import streamlit as st
 import torch
 from torch import nn
@@ -9,33 +12,33 @@ from transformers.generation.utils import (LogitsProcessorList,
 from typing import Callable, List, Optional
 from dataclasses import asdict, dataclass
 from audiorecorder import audiorecorder
-from server.server_configs import ServerConfigs
 from web.api import get_asr_api, get_tts_api, get_chat_responses, get_streamchat_responses
 
 from web.api import get_answerevaluation, get_selectquestion, get_parsingresumes
 from server.tools.tools_prompt import multiinterview_prompt_template
 from lmdeploy import pipeline
 from agent.base_agent import BaseAgent
+from server.tools.tools_prompt import interview_prompt_template_norag
+from server.internvl.internvl_server import upload_images, upload_pdf
+import tempfile
+from werkzeug.utils import secure_filename
+from os import path
+import shutil
 
 import os
 from dotenv import load_dotenv, find_dotenv
 _ = load_dotenv(find_dotenv())
 
+app_script_path = os.path.abspath(__file__)
+project_root_path = os.path.dirname(app_script_path)
+
 logger = logging.get_logger(__name__)
 
-@dataclass
-class GenerationConfig:
-    # this config is used for chat to provide more diversity
-    max_length: int = 2048
-    top_p: float = 0.75
-    temperature: float = 0.1
-    do_sample: bool = True
-    repetition_penalty: float = 1.000
+def handle_image(file_path):
+    upload_images(file_path)
 
-# @st.cache_resource
-# def load_model():
-#     model = pipeline(model_name_or_path)
-#     return model
+def handle_pdf(file_path):
+    upload_pdf(file_path)
 
 def combine_multiinterview_history(prompt):
     resumes = st.session_state.resume_content
@@ -99,12 +102,11 @@ def init_st_attribute():
         st.session_state.selected_tts = False  # 默认不开启
     if "selected_digitalhuman" not in st.session_state:
         st.session_state.selected_digitalhuman = False
-    # 记录是否上传文件、解析后的简历
+    # page2 记录是否上传文件、解析后的简历
     if 'uploaded_file' not in st.session_state:
         st.session_state.uploaded_file = ''
     if 'resume_content' not in st.session_state:
         st.session_state.resume_content = ''
-
 
 def clicked_clear_history():
     if st.session_state:
@@ -200,7 +202,7 @@ def prepare_agentpage():
 
 def prepare_sidebar_config():
     from PIL import Image
-    image = Image.open('./assets/app_image.png')
+    image = Image.open('image.png')
     with st.sidebar:
         st.image(image, width=250)
         # Radio 按钮选择页面
@@ -245,9 +247,45 @@ def page1():
             'content': text_chat,  
         })
 
+    placeholder = st.empty()
     with st.sidebar:
-        st.button('Generated questions', on_click=clicked_gen_question)
+        st.button('生成问题', on_click=clicked_gen_question)
+        st.button('清空问题数据库', on_click=clear_question_database)
 
+        st.header('创建你的问题数据库')
+        uploaded_file = st.file_uploader("上传知识文件", type=["pdf", "jpg", "png"])
+
+        if uploaded_file is not None:
+            filename = secure_filename(uploaded_file.name)
+
+            temp_dir = tempfile.mkdtemp()
+
+            file_path = path.join(temp_dir, filename)
+
+            with open(file_path, 'wb') as f:
+                f.write(uploaded_file.read())
+            try:
+                if filename.lower().endswith(('.png', '.jpg')):
+
+                    placeholder.markdown("正在处理你的图片...")
+                    handle_image(file_path)
+                    placeholder.markdown("问题数据库已更新")
+                    st.session_state.uploaded_file = None
+                elif filename.lower().endswith('.pdf'):
+                    placeholder.markdown("正在处理你的文件...")
+                    handle_pdf(file_path)
+                    placeholder.markdown("问题数据库已更新")
+                    st.session_state.uploaded_file = None
+            finally:
+                shutil.rmtree(temp_dir)
+
+        file_urls = st.text_area("批量输入你的文件url, 每行一个")
+
+        if st.button('处理批量图片'):
+            if file_urls:
+                urls = file_urls.splitlines()
+                handle_image(urls)
+        
     if st.session_state.question_chat:
         if st.session_state.audio_chat:
             gen_audio_ans()
@@ -271,8 +309,18 @@ def gen_normal_ans():
     })
 
 
-def gen_text_ans():        
-    final_prompt = get_answerevaluation(query=st.session_state.question_chat, ans=st.session_state.user_chat)
+def gen_text_ans():      
+    first_prompt = interview_prompt_template_norag.format(st.session_state.question_chat, st.session_state.user_chat)
+    first_messages = [{
+        'role': 'user',
+        'content': first_prompt
+    }]
+    rag_content = ''
+    for cur_response in get_streamchat_responses(first_messages):
+        rag_content += cur_response
+    
+    print(rag_content)
+    final_prompt = get_answerevaluation(query=st.session_state.question_chat, ans=st.session_state.user_chat, rag_content=rag_content)
     print(final_prompt)
     final_messages = [{
         'role': 'user',
@@ -330,12 +378,13 @@ def clicked_gen_question():
         'content': cur_response,  # pylint: disable=undefined-loop-variable
     })
 
+def clear_question_database():
+    os.remove(os.path.join(Configs.PROJECT_ROOT, "storage/db_questions.db"))
+
 def page2():
     prepare_mockinterviewspage()
     st.header("Interview-Assistant-MockInterviews", divider='rainbow')
-    # print("page2 is load!")
-    # print(st.session_state.page2messages)
-    # 显示聊天历史中的所有信息，对于每条信息使用st.chat_message()创建聊天气泡，并用st.markdown()来渲染消息内容
+
     for message in st.session_state.page2messages:
         with st.chat_message(message['role']):
             st.markdown(message['content'])  
@@ -382,16 +431,14 @@ def page2():
             st.audio(ServerConfigs.TTS_AUDIO_PATH)
 
 def click_uploader():
-    # empty_container = st.empty()
-    # with st.chat_message('assistant'):
-    #     empty_container.markdown("简历解析中...............................")
-    with open(ServerConfigs.RESUME_PATH, 'wb') as f:
+    empty_container = st.empty()
+    empty_container.markdown("简历解析中. ..............................")
+    with open(Configs.RESUME_PATH, 'wb') as f:
         f.write(st.session_state.uploaded_file.read())
-    st.session_state.resume_content = get_parsingresumes(ServerConfigs.RESUME_PATH)
+    st.session_state.resume_content = get_parsingresumes(Configs.RESUME_PATH)
     del st.session_state.uploaded_file
-    # with st.chat_message('assistant'):
-    #     empty_container.markdown("简历解析完成...............................")
-    # empty_container.empty()
+    empty_container.markdown("简历解析完成...............................")
+    empty_container.empty()  
 
 def clicked_start_interview():
     assert st.session_state.resume_content, "你还未上传简历"
@@ -474,17 +521,7 @@ def page3():
                 })
 
 if __name__ == "__main__":
-    # 清空CUDA缓存，加载模型
-    # print('load model begin.')
-    # model = load_model()
-    # print('load model end.')
 
-    # 加载工具
-    # print('load tools begin.')
-    # tools = load_tools()
-    # print('load tools end.')
-    # 请确保图片路径是相对于你的Streamlit应用程序的
-        
     init_st_attribute()
 
     prepare_sidebar_config()

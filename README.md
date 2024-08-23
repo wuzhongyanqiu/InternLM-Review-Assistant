@@ -31,7 +31,7 @@ uvicorn server.asr.asr_server:app --host 0.0.0.0 --port 8001
 ```bash
 uvicorn server.tts.tts_server:app --host 0.0.0.0 --port 8002
 ```
-- Mock-Interviewer服务：
+- InternLM-Interview-Assistant服务：
 ```bash
 uvicorn server.base.base_server:app --host 0.0.0.0 --port 8003
 ```
@@ -39,12 +39,17 @@ uvicorn server.base.base_server:app --host 0.0.0.0 --port 8003
 ```bash
 uvicorn server.tools.tools_server:app --host 0.0.0.0 --port 8004
 ```
+- InternVL-Interview-Gendatabase服务：
+```bash
+lmdeploy serve api_server ./models/InternVL2-2B --backend turbomind --server-port 8005 --chat-template ./server/internvl/chat_template.json
+```
 
 # 流程
 
-## 一、微调 intern2
+## 一、微调 InternLM2-chat-7b 和 InternVL2-2b
 ### 数据集构建
-本项目当前版本的数据集采用个人整理总结的大模型面试相关数据和ChatGLM & Qwen & Erniebot的生成数据集，当前开源了全部数据生成、处理方式和生成数据集，数据集格式如下：
+#### InternLM2-chat-7b
+本项目当前版本的数据集采用个人整理总结的大模型面试相关数据和 ChatGLM & Qwen & Erniebot 的生成数据集，数据集格式如下：
 - 多轮对话数据
 ```
 [
@@ -117,11 +122,47 @@ uvicorn server.tools.tools_server:app --host 0.0.0.0 --port 8004
     },
 ]
 ```
+#### InternVL2-2b
+本项目当前版本的数据集采用个人整理总结的面试相关图片和 GLM-4V 生成的数据，数据集格式如下：
+- 提炼面试题数据集
+```
+[
+    {
+        "image": "./pics/pic363.png",
+        "conversations": [
+            {
+                "from": "human",
+                "value": "<image>\n将图里的信息提取出几道面试题，每道面试题必须以<|start|>开始，并且以<|end|>结束"
+            },
+            {
+                "from": "gpt",
+                "value": "<start>面试题1：卷积神经网络中的步长（Stride）和零填充（Zero Padding）有什么区别？<end>\n<start>面试题2：在卷积神经网络中，如何选择合适的步长（Stride）和零填充（Zero Padding）参数？<end>"
+            }
+        ]
+    },
+    {
+        "image": "./pics/pic364.png",
+        "conversations": [
+            {
+                "from": "human",
+                "value": "<image>\n将图里的信息提取出几道面试题，每道面试题必须以<|start|>开始，并且以<|end|>结束"
+            },
+            {
+                "from": "gpt",
+                "value": "<start>面试题1：请解释卷积运算在图像处理中的基本概念和作用？<end>\n<start>面试题2：如何理解卷积核的性质及其对特征提取的影响？<end>"
+            }
+        ]
+    },
+    ...
+]
+```
+
 ### 训练和部署
-1. 将`./finetune/internlm2_chat_7b/internlm2_chat_7b_qlora_interview_data.py`中的数据集路径和模型路径替换为本地路径，根据显存大小调整`max_length`或`batch_size`，根据数据量和训练的效果调整`lr`等其他参数。
+#### InternLM2-chat-7b
+1. 将`./finetune/internlm2_chat_7b_qlora_interview_data.py`中的数据集路径和模型路径替换为本地路径，其余参数根据需求和资源调整。
 2. 使用命令进行训练，自定义评估问题，可以手动早停：
 ```
-xtuner train finetune/internlm2_chat_7b_qlora_interview_data.py --deepspeed deepspeed_zero2
+xtuner train ./finetune/internlm2_chat_7b_qlora_interview_data.py --deepspeed deepspeed_zero2
 ```
 3. 转换模型为hf格式：
 ```
@@ -160,6 +201,17 @@ python ./benchmark/benchmark_lmdeploy.py
 mock-interviewer-7b|transformer|66.378
 mock-interviewer-7b|LMDeploy(Turbomind)|145.431
 mock-interviewer-7b-4bit|LMDeploy(Turbomind)|343.990
+
+#### InternVL2-2b
+1. 将`./finetune/internvl_v2_internlm2_2b_qlora_finetune.py`中的数据集路径和模型路径替换为本地路径，其余参数根据需求和资源调整。
+2. 使用命令进行训练：
+```
+NPROC_PER_NODE=1 xtuner train ./finetune/internvl_v2_internlm2_2b_qlora_finetune.py --work-dir ./work_dirs/internvl_v2_internlm2_2b_qlora/internvl_ft_run_8_filter --deepspeed deepspeed_zero1
+```
+3. 合并模型
+```
+python3 ../XTuner/xtuner/configs/internvl/v1_5/convert_to_official.py ./finetune/internvl_v2_internlm2_2b_qlora_finetune.py ./work_dirs/internvl_v2_internlm2_2b_qlora/internvl_ft_run_8_filter/iter_{?}.pth ./models/InternVL2-2B/
+```
 
 ## 二、RAG检索增强生成
 
