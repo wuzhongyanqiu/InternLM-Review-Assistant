@@ -5,11 +5,12 @@
 ![架构图](./assets/architecture_diagram.png)
 
 # 效果 DEMO
-![DEMO1](./assets/demo1.png)
+<!-- ![DEMO1](./assets/demo1.png)
 ![DEMO2](./assets/demo2.png)
 ![DEMO3](./assets/demo3.png)
 ![DEMO4](./assets/demo4.png)
-![DEMO5](./assets/demo5.png)
+![DEMO5](./assets/demo5.png) -->
+更新中
 
 # 快速使用
 ## 本地部署
