@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-
 from langchain_community.retrievers import BM25Retriever
 from langchain.schema import Document
 import jieba

@@ -1,22 +1,26 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-
 from langchain.schema import Document
 from langchain_community.vectorstores import Chroma,FAISS
 from langchain_community.embeddings import HuggingFaceEmbeddings
 import torch
 import os
 
+current_file_path = os.path.abspath(__file__)
+current_dir = os.path.dirname(current_file_path)
+
+# 持久化路径
+PERSIST_PATH = os.path.join(current_dir, "../../storage/")
 
 class FaissRetriever(object):
     # 初始化文档块索引，然后插入faiss库
-    def __init__(self, model_path, data, persist_path=None):
-        self.embeddings  = HuggingFaceEmbeddings(
-                               model_name = model_path,
-                               model_kwargs = {"device":"cuda"}
-                               # model_kwargs = {"device":"cuda:1"}
-                           )
+    def __init__(self, model_path, data, persist_path=PERSIST_PATH):
+        self.embeddings = HuggingFaceEmbeddings(
+                            model_name = model_path,
+                            model_kwargs = {"device":"cuda"}
+                        )
+        self.persist_path = persist_path
         docs = []
         for idx, line in enumerate(data):
             line = line.strip("\n").strip()
@@ -32,14 +36,15 @@ class FaissRetriever(object):
         #     if persist_path:
         #         self.Save_local(persist_path)
         self.vector_store = FAISS.from_documents(docs, self.embeddings)
-        # 删除对象，释放未被引用的缓存内存
+        if persist_path:
+            self.Save_local()
         del self.embeddings
         torch.cuda.empty_cache()
 
-    def Save_local(self, persist_path):
-        if not os.path.isdir(persist_path):
-            os.makedirs(persist_path)
-        self.vector_store.save_local(persist_path)
+    def Save_local(self):
+        if not os.path.isdir(self.persist_path):
+            os.makedirs(self.persist_path)
+        self.vector_store.save_local(self.persist_path)
 
     # 获取top-K分数最高的文档块
     def GetTopK(self, query, k):

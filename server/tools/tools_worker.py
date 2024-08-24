@@ -93,6 +93,17 @@ class AnswerEvaluationTool():
         ans = self.result_prompt.format(query, ans, rerank_ans)
         return ans
 
+    def test_rag(self, query):
+        faiss_context1 = self.faiss_retriever1.GetTopK(query, 2)
+        faiss_context2 = self.faiss_retriever2.GetTopK(query, 2)
+        faiss_context3 = self.faiss_retriever3.GetTopK(query, 2)
+        faiss_context4 = self.faiss_retriever4.GetTopK(query, 2)
+        faiss_content = [faiss_context1, faiss_context2, faiss_context3, faiss_context4]
+        bm25_context = self.bm25.GetBM25TopK(query, 2)      
+        rerank_ans1 = reRank1(self.rerank, 2, query, bm25_context, faiss_context)
+        rerank_ans2 = reRank2(self.rerank, 2, query, bm25_context, faiss_content)
+        return rerank_ans1, rerank_ans2
+
 
 class ParsingResumesTool():
     def __init__(self):

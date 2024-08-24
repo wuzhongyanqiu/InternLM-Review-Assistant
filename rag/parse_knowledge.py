@@ -11,7 +11,7 @@ class DataProcess(object):
         self.pdf_path = pdf_path
         self.data = []
 
-    def SlidingWindow(self, sentences, kernel = 512, stride = 1):
+    def SlidingWindow(self, sentences, kernel = 128, stride = 1):
         sz = len(sentences)
         cur = ""
         fast = 0
@@ -25,7 +25,7 @@ class DataProcess(object):
             cur = cur + sentence + "。"
             fast = fast + 1
 
-    def Datafilter(self, line, header, pageid, max_seq = 1024):
+    def Datafilter(self, line, header, pageid, max_seq = 256):
 
          sz = len(line)
          if(sz < 6):
@@ -68,7 +68,7 @@ class DataProcess(object):
             return lines[0]["text"]
         return None
 
-    def ParseBlock(self, max_seq = 1024):
+    def ParseBlock(self, max_seq = 256):
 
         with pdfplumber.open(self.pdf_path) as pdf:
 
@@ -113,7 +113,7 @@ class DataProcess(object):
                 if(len(squence) > 0):
                     self.Datafilter(squence, header, i, max_seq = max_seq)
 
-    def ParseOnePageWithRule(self, max_seq = 512, min_len = 6):
+    def ParseOnePageWithRule(self, max_seq = 128, min_len = 6):
         for idx, page in enumerate(PdfReader(self.pdf_path).pages):
             page_content = ""
             text = page.extract_text()
@@ -142,7 +142,7 @@ class DataProcess(object):
                     else:
                         cur = cur + sentence
 
-    def ParseAllPage(self, max_seq = 512, min_len = 6):
+    def ParseAllPage(self, max_seq = 128, min_len = 6):
         all_content = ""
         for idx, page in enumerate(PdfReader(self.pdf_path).pages):
             page_content = ""
@@ -165,12 +165,12 @@ class DataProcess(object):
 
 def data_parsing(pdf_path):
     dp = DataProcess(pdf_path=pdf_path)
-    dp.ParseBlock(max_seq = 1024)
-    dp.ParseBlock(max_seq = 512)
-    dp.ParseAllPage(max_seq = 256)
-    dp.ParseAllPage(max_seq = 512)
-    dp.ParseOnePageWithRule(max_seq = 256)
-    dp.ParseOnePageWithRule(max_seq = 512)
+    dp.ParseBlock(max_seq = 256)
+    dp.ParseBlock(max_seq = 128)
+    dp.ParseAllPage(max_seq = 64)
+    dp.ParseAllPage(max_seq = 128)
+    dp.ParseOnePageWithRule(max_seq = 64)
+    dp.ParseOnePageWithRule(max_seq = 128)
     data = dp.data
     return data
 
@@ -186,5 +186,5 @@ def process_folder(folder_path):
     return aggregated_data
 
 if __name__ == "__main__":
-    data = process_folder("/root/Mock-Interviewer/datas")
+    data = process_folder("../datas")
 

@@ -100,7 +100,7 @@ lmdeploy serve api_server ./models/InternVL2-2B --backend turbomind --server-por
 ...
 ]
 ```
-- 智能体数据
+- 指令数据
 ```
 [
     {
@@ -125,7 +125,7 @@ lmdeploy serve api_server ./models/InternVL2-2B --backend turbomind --server-por
 ```
 #### InternVL2-2b
 本项目当前版本的数据集采用个人整理总结的面试相关图片和 GLM-4V 生成的数据，数据集格式如下：
-- 提炼面试题数据集
+- 指令数据
 ```
 [
     {
@@ -221,7 +221,7 @@ python3 ../XTuner/xtuner/configs/internvl/v1_5/convert_to_official.py ./finetune
 ```mermaid
 graph LR
     A(知识文档) -- 清洗、切分 --> B(分块文档)
-    B(分块文档) -- bm25、m3e --> C(混合检索器) 
+    B(分块文档) -- bm25、m3e、gte、bge、bce --> C(混合检索器) 
 ```
 
 - RAG过程
