@@ -1,3 +1,5 @@
+import sys
+sys.path.append("/root/Mock-Interviewer")
 import sqlite3
 from llama_index.llms.huggingface import HuggingFaceLLM
 from llama_index.core.llms import ChatMessage
@@ -9,6 +11,7 @@ from PyPDF2 import PdfReader
 from pdfminer.high_level import extract_text
 from rag.parse_knowledge import process_folder
 import os
+from typing import Union, List
 
 current_file_path = os.path.abspath(__file__)
 current_dir = os.path.dirname(current_file_path)
@@ -17,10 +20,14 @@ current_dir = os.path.dirname(current_file_path)
 DB_PATH = os.path.join(current_dir, "../../storage/db_questions.db")
 
 # embedding model路径
-EMBED_MODEL_PATH = "moka-ai/m3e-base"
+EMBED_MODEL1_PATH = "moka-ai/m3e-base"
+EMBED_MODEL2_PATH = "thenlper/gte-large"
+EMBED_MODEL3_PATH = "BAAI/bge-large-zh-v1.5"
+EMBED_MODEL4_PATH = "maidalun1020/bce-embedding-base_v1"
 
 # rerank model路径
-RERANK_MODEL_PATH = "BAAI/bge-reranker-large"
+RERANK_MODEL1_PATH = "BAAI/bge-reranker-large"
+RERANK_MODEL2_PATH = "maidalun1020/bce-reranker-base_v1"
 
 # 处理文件路径
 DATAS_FOLDER_PATH = os.path.join(current_dir, "../../datas/")
@@ -43,12 +50,13 @@ def load_data(file_path):
 def reRank(rerank, top_k, query, bm25_ans, faiss_ans):
     items = []
     max_length = 4000
-    for doc, score in faiss_ans:
-        items.append(doc)
+    for faiss in faiss_ans:
+        for doc, score in faiss:
+            items.append(doc)
     items.extend(bm25_ans)
     rerank_ans = rerank.predict(query, items)
     rerank_ans = rerank_ans[:top_k]
-    # docs_sort = sorted(rerank_ans, key = lambda x:x.metadata["id"])
+
     emb_ans = ""
     for doc in rerank_ans:
         if(len(emb_ans + doc.page_content) > max_length):
@@ -78,19 +86,35 @@ class AnswerEvaluationTool():
         self.description = "用于调用RAG得到相关的上下文"
         self.result_prompt = interview_prompt_template
 
-        self.embed_model_path = EMBED_MODEL_PATH
+        self.embed_model1_path = EMBED_MODEL1_PATH
+        self.embed_model2_path = EMBED_MODEL2_PATH
+        self.embed_model3_path = EMBED_MODEL3_PATH
+        self.embed_model4_path = EMBED_MODEL4_PATH
         self.data = process_folder(DATAS_FOLDER_PATH)
-        self.rerank_path = RERANK_MODEL_PATH
-        self.persist_path = PERSIST_PATH + self.embed_model_path 
-        self.faiss_retriever = FaissRetriever(self.embed_model_path, self.data, self.persist_path)
+        self.rerank_path1 = RERANK_MODEL1_PATH
+        self.rerank_path2 = RERANK_MODEL2_PATH
+        self.persist_path1 = PERSIST_PATH + self.embed_model1_path
+        self.persist_path2 = PERSIST_PATH + self.embed_model2_path 
+        self.persist_path3 = PERSIST_PATH + self.embed_model3_path 
+        self.persist_path4 = PERSIST_PATH + self.embed_model4_path 
+        self.faiss_retriever1 = FaissRetriever(self.embed_model1_path, self.data, self.persist_path1)
+        self.faiss_retriever2 = FaissRetriever(self.embed_model2_path, self.data, self.persist_path2)
+        self.faiss_retriever3 = FaissRetriever(self.embed_model3_path, self.data, self.persist_path3)
+        self.faiss_retriever4 = FaissRetriever(self.embed_model4_path, self.data, self.persist_path4)
         self.bm25 = BM25(self.data)
-        self.rerank = reRankLLM(self.rerank_path)
+        self.rerank1 = reRankLLM(self.rerank_path1)
+        self.rerank2 = reRankLLM(self.rerank_path2)
 
     def reply(self, query, ans, rag_content):
-        faiss_context = self.faiss_retriever.GetTopK(rag_content, 2)
+        faiss_context1 = self.faiss_retriever1.GetTopK(rag_content, 2)
+        faiss_context2 = self.faiss_retriever2.GetTopK(rag_content, 2)
+        faiss_context3 = self.faiss_retriever3.GetTopK(rag_content, 2)
+        faiss_context4 = self.faiss_retriever4.GetTopK(rag_content, 2)
+        faiss_content = [faiss_context1, faiss_context2, faiss_context3, faiss_context4]
         bm25_context = self.bm25.GetBM25TopK(rag_content, 2)      
-        rerank_ans = reRank(self.rerank, 2, rag_content, bm25_context, faiss_context)
-        ans = self.result_prompt.format(query, ans, rerank_ans)
+        rerank_ans1 = reRank(self.rerank1, 2, rag_content, bm25_context, faiss_context)
+        rerank_ans2 = reRank(self.rerank2, 2, rag_content, bm25_context, faiss_content)
+        ans = self.result_prompt.format(query, ans, rerank_ans1)
         return ans
 
     def test_rag(self, query):
@@ -100,8 +124,8 @@ class AnswerEvaluationTool():
         faiss_context4 = self.faiss_retriever4.GetTopK(query, 2)
         faiss_content = [faiss_context1, faiss_context2, faiss_context3, faiss_context4]
         bm25_context = self.bm25.GetBM25TopK(query, 2)      
-        rerank_ans1 = reRank1(self.rerank, 2, query, bm25_context, faiss_context)
-        rerank_ans2 = reRank2(self.rerank, 2, query, bm25_context, faiss_content)
+        rerank_ans1 = reRank(self.rerank1, 2, query, bm25_context, faiss_context)
+        rerank_ans2 = reRank(self.rerank2, 2, query, bm25_context, faiss_content)
         return rerank_ans1, rerank_ans2
 
 
@@ -117,7 +141,4 @@ class ParsingResumesTool():
             return f"解析PDF时发生错误: {e}"
 
 if __name__ == "__main__":
-    parsingresumestool = ParsingResumesTool()
-    document_path = "./resume.pdf"
-    result = parsingresumestool.reply(document_path)
-    print(result)
+    answerevaluationtool = AnswerEvaluationTool()

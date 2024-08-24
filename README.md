@@ -188,7 +188,7 @@ python -m lmdeploy.pytorch.chat ./work_dirs/internlm2_chat_7b_qlora_interview_da
 ```
 6. 进行4bit量化-可选
 ```
-lmdeploy lite auto_awq /root/Mock-Interviewer/work_dirs/internlm2_chat_7b_qlora_interview_data/iter_250_merge --work-dir /root/Mock-Interviewer/work_dirs/internlm2_chat_7b_qlora_interview_data/iter_250_merge_4bit
+lmdeploy lite auto_awq ./work_dirs/internlm2_chat_7b_qlora_interview_data/iter_250_merge --work-dir ./work_dirs/internlm2_chat_7b_qlora_interview_data/iter_250_merge_4bit
 ```
 7. 测试速度-可选
 ```
@@ -199,9 +199,9 @@ python ./benchmark/benchmark_lmdeploy.py
 ||||
 |-|-|-|
 |Model|Toolkit|speed(words/s)
-mock-interviewer-7b|transformer|66.378
-mock-interviewer-7b|LMDeploy(Turbomind)|145.431
-mock-interviewer-7b-4bit|LMDeploy(Turbomind)|343.990
+InternLM-Interview-Assistant|transformer|66.378
+InternLM-Interview-Assistant|LMDeploy(Turbomind)|145.431
+InternLM-Interview-Assistant-4bit|LMDeploy(Turbomind)|343.990
 
 #### InternVL2-2b
 1. 将`./finetune/internvl_v2_internlm2_2b_qlora_finetune.py`中的数据集路径和模型路径替换为本地路径，其余参数根据需求和资源调整。
