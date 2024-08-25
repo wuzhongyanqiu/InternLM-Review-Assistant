@@ -1,9 +1,9 @@
 import sys
-sys.path.append('/root/Mock-Interviewer/') 
+sys.path.append('/root/InternLM-Interview-Assistant/') 
 import requests
-from server.server_configs import ServerConfigs
 from web.api import get_parsingresumes
 
+RESUME_PATH = "./storage/resume.pdf"
 class RESUME2WEBSITE:
     def __init__(self):
         self.system_prompt = """
@@ -24,7 +24,7 @@ class RESUME2WEBSITE:
         - "我叫张三，是一名软件工程师。我在XX大学获得了计算机科学学位，并在YY公司担任过前端开发职位。我精通JavaScript、HTML和CSS。"
         - Initialization: 请输入您的简历描述，我将为您生成个人主页的HTML和CSS代码。
         """
-        self.resume = get_parsingresumes(ServerConfigs.RESUME_PATH)
+        self.resume = get_parsingresumes(RESUME_PATH)
 
     def reply(self):
         total_prompt = []

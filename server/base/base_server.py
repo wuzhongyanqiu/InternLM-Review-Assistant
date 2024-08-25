@@ -8,7 +8,7 @@ import os
 current_file_path = os.path.abspath(__file__)
 current_dir = os.path.dirname(current_file_path)
 # model路径
-BASE_MODEL_PATH = os.path.join(current_dir, '../../models/InternLM-Interview-Assistant')
+BASE_MODEL_PATH = os.path.join(current_dir, '../../models/Internlm-Interview-Assistant')
 
 @dataclass
 class GenerationConfig:

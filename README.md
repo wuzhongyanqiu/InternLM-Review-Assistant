@@ -7,12 +7,16 @@
 ![架构图](./assets/architecture_diagram.png)
 
 # 效果 DEMO
-<!-- ![DEMO1](./assets/demo1.png)
+- 上传知识文件(pdf、jpg、png)，生成面试题存入数据库，支持批量上传
+![DEMO1](./assets/demo1.png)
+- 抽取面试题，改写后提问，使用RAG评估答案
 ![DEMO2](./assets/demo2.png)
+- 上传简历，模拟面试
 ![DEMO3](./assets/demo3.png)
+- Agent功能（简历转个人主页尚未完善）
 ![DEMO4](./assets/demo4.png)
-![DEMO5](./assets/demo5.png) -->
-更新中
+![DEMO5](./assets/demo5.png)
+- 支持TTS、ASR，无效果图
 
 # 快速使用
 
@@ -45,9 +49,11 @@ uvicorn server.tools.tools_server:app --host 0.0.0.0 --port 8004
 ```
 - InternVL-Interview-Assistant服务：
 ```bash
-lmdeploy serve api_server ./models/InternVL2-2B --cache-max-entry-count 0.2 --backend turbomind --server-port 8005 --chat-template ./server/internvl/chat_template.json
+lmdeploy serve api_server ./models/Internvl-Interview-Assistant --cache-max-entry-count 0.2 --backend turbomind --server-port 8005 --chat-template ./server/internvl/chat_template.json
 ```
+
 对于 Interview-Assistant 服务，由于使用的是 LMdeploy 部署，其默认 kv-cache 缓存为剩余显存的0.8，这样在开启其他服务时会出现abort的情况，在此改为0.3。
+
 当前快速使用方法的环境、路径等会出现冲突，待重构代码后更新方法。
 
 # 流程
@@ -55,7 +61,9 @@ lmdeploy serve api_server ./models/InternVL2-2B --cache-max-entry-count 0.2 --ba
 ## 一、微调 InternLM2-chat-7b 和 InternVL2-2b
 ### 数据集构建
 #### InternLM2-chat-7b
+
 本项目当前版本的数据集采用个人整理总结的大模型面试相关数据和 ChatGLM & Qwen & Erniebot 的生成数据集，数据集格式如下：
+
 - 多轮对话数据
 ```
 [
@@ -129,7 +137,9 @@ lmdeploy serve api_server ./models/InternVL2-2B --cache-max-entry-count 0.2 --ba
 ]
 ```
 #### InternVL2-2b
+
 本项目当前版本的数据集采用个人整理总结的面试相关图片和 GLM-4V 生成的数据，数据集格式如下：
+
 - 指令数据
 ```
 [
@@ -223,6 +233,7 @@ python3 ../XTuner/xtuner/configs/internvl/v1_5/convert_to_official.py ./finetune
 此处的RAG知识分块仅针对pdf，采取不同粒度的切分，切分长度大小可调整，目前是适合我个人知识库的大小，有关其他格式的文件代码后期会补
 
 - 检索器构建
+
 此处的检索器构建利用langchain的BM25Retriever和FaissRetriever，向量模型分别用的是m3e、gte、bge、bce，采取多路召回模式
 
 ```mermaid
@@ -232,6 +243,7 @@ graph LR
 ```
 
 - RAG过程
+
 rerank模型分别使用bge、bce
 
 ```mermaid
@@ -248,7 +260,9 @@ graph LR
 ```
 
 - RAG评估
+
 这里使用自动评分（text2vec相似度分数，权重0.6）和模型评分（GLM4主观评分，权重0.4）进行综合评估。
+
 ```mermaid
 graph LR
     A(问题) -- RAG --> B(参考的上下文)
@@ -259,6 +273,7 @@ graph LR
     D(正确答案) --> F(模型打分)
     B(参考的上下文) --> F(模型打分)
 ```
+
 评估的问答对格式如下，有正确答案和无答案比例为5:1左右：
 ```
 [
@@ -273,9 +288,10 @@ graph LR
     ...
 ]
 ```
+
 知识库中的相关文档页数和不相关文档页数比例为34:435，以此添加噪声，测试RAG性能。
+
 最终RAG得分为：
-|||
 |-|-|
 |自动评分|模型评分|
 |0.893||
@@ -319,7 +335,6 @@ graph LR
 ## 五、后记
 本项目是个人的一个学习项目，由于刚刚起步，因此整个项目的架构都还不明晰，很多东西都有优化空间，效果和理想的有差距，比如在回答问题时如果说不知道，模型会出现复读机问题。
 
-但随着本人能力的不断迭代和花费的时间不断增多，此项目也会随之优化，期望其能变成一个完整的、有意义的项目。
+随着本人能力的不断迭代和花费的时间不断增多，此项目也会随之优化，期望其能变成一个完整的、有意义的项目。
 
 作为一个刚入行几个月的新手，把学到的知识利用起来，转换为自己的兴趣是很有意义的事情，非常感谢上海人工智能实验室主办的书生大模型实战营，为本人做一个属于自己的开源项目提供了丰富的算力和技术支持，非常感谢！
-
