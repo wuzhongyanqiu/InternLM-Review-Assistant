@@ -8,14 +8,19 @@
 
 # 效果 DEMO
 - 上传知识文件(pdf、jpg、png)，生成面试题存入数据库，支持批量上传
+
 ![DEMO1](./assets/demo1.png)
 - 抽取面试题，改写后提问，使用RAG评估答案
+
 ![DEMO2](./assets/demo2.png)
 - 上传简历，模拟面试
+
 ![DEMO3](./assets/demo3.png)
 - Agent功能（简历转个人主页尚未完善）
+
 ![DEMO4](./assets/demo4.png)
 ![DEMO5](./assets/demo5.png)
+
 - 支持TTS、ASR，无效果图
 
 # 快速使用
