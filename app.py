@@ -91,7 +91,7 @@ def init_st_attribute():
         st.session_state.user_chat = ''
     # 记住用户选择的页面
     if 'selected_page' not in st.session_state:
-        st.session_state.selected_page = "Interview-Assistant-QuestionReview"  # 默认选择第一页
+        st.session_state.selected_page = "Interview-Question-Practice"  # 默认选择第一页
     # 记住用户语音输入的文本
     if 'audio_chat' not in st.session_state:
         st.session_state.audio_chat = ''  
@@ -201,13 +201,11 @@ def prepare_agentpage():
         
 
 def prepare_sidebar_config():
-    from PIL import Image
-    image = Image.open('image.png')
     with st.sidebar:
         st.image(image, width=250)
         # Radio 按钮选择页面
         st.button('Clear history', on_click=clicked_clear_history)
-        st.session_state.selected_page = st.radio("请选择页面:", ["Interview-Assistant-QuestionReview", "Interview-Assistant-MockInterviews", 'Interview-Assistant-Agent'])
+        st.session_state.selected_page = st.radio("请选择页面:", ["Interview-Question-Practice", "Interview-Practice-Exercise", 'Interview-Agent-Butler'])
         
 
 def start_asr():
@@ -230,7 +228,7 @@ def start_asr():
 # 定义页面内容
 def page1():
     prepare_questionreviewpage()
-    st.header("Interview-Assistant-QuestionReview", divider='rainbow')
+    st.header("Interview-Question-Practice", divider='rainbow')
     # 显示聊天历史中的所有信息，对于每条信息使用st.chat_message()创建聊天气泡，并用st.markdown()来渲染消息内容
     # print("page1 is load!")
     # print(st.session_state.page1messages)
@@ -383,7 +381,7 @@ def clear_question_database():
 
 def page2():
     prepare_mockinterviewspage()
-    st.header("Interview-Assistant-MockInterviews", divider='rainbow')
+    st.header("Interview-Practice-Exercise", divider='rainbow')
 
     for message in st.session_state.page2messages:
         with st.chat_message(message['role']):
@@ -465,7 +463,7 @@ def clicked_start_interview():
 def page3():
     init_page3()
     prepare_agentpage()
-    st.header("Interview-Assistant-Agent", divider='rainbow')
+    st.header("Interview-Agent-Butler", divider='rainbow')
     baseagent = BaseAgent()
     baseagent.input_tools_prompt(st.session_state.tools)
 
@@ -526,11 +524,11 @@ if __name__ == "__main__":
 
     prepare_sidebar_config()
 
-    if st.session_state.selected_page == "Interview-Assistant-QuestionReview":
+    if st.session_state.selected_page == "Interview-Question-Practice":
         page1()
-    elif st.session_state.selected_page == "Interview-Assistant-MockInterviews":
+    elif st.session_state.selected_page == "Interview-Practice-Exercise":
         page2()
-    elif st.session_state.selected_page == "Interview-Assistant-Agent":
+    elif st.session_state.selected_page == "Interview-Agent-Butler":
         page3()
 
     torch.cuda.empty_cache()

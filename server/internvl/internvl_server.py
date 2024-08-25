@@ -101,4 +101,4 @@ def view_db_contents(db_path):
 
 if __name__ == "__main__":
     # upload_pdf(os.path.join(current_dir, '../../storage/Charles.pdf'))
-    view_db_contents('/root/Mock-Interviewer/storage/db_questions.db')
+    view_db_contents('/root/InternLM-Interview-Assistant/storage/db_questions.db')

@@ -1,6 +1,8 @@
 # InternLM-Interview-Assistant
 基于InternLM的面试复习助手项目，欢迎大家也来参加书生大模型实战营项目[http://github.com/internLM/tutorial](http://github.com/internLM/tutorial)
 
+当前版本的全部代码、微调数据集均开源，RAG数据集由于为本人面试复习整理的资料，仅供个人使用未开源，用户可自行安放个人知识资料。
+
 # 架构图
 ![架构图](./assets/architecture_diagram.png)
 
@@ -13,6 +15,7 @@
 更新中
 
 # 快速使用
+
 ## 本地部署
 ```bash
 git clone https://github.com/wuzhongyanqiu/InternLM-Interview-Assistant.git
@@ -40,10 +43,12 @@ uvicorn server.base.base_server:app --host 0.0.0.0 --port 8003
 ```bash
 uvicorn server.tools.tools_server:app --host 0.0.0.0 --port 8004
 ```
-- InternVL-Interview-Gendatabase服务：
+- InternVL-Interview-Assistant服务：
 ```bash
-lmdeploy serve api_server ./models/InternVL2-2B --backend turbomind --server-port 8005 --chat-template ./server/internvl/chat_template.json
+lmdeploy serve api_server ./models/InternVL2-2B --cache-max-entry-count 0.2 --backend turbomind --server-port 8005 --chat-template ./server/internvl/chat_template.json
 ```
+对于 Interview-Assistant 服务，由于使用的是 LMdeploy 部署，其默认 kv-cache 缓存为剩余显存的0.8，这样在开启其他服务时会出现abort的情况，在此改为0.3。
+当前快速使用方法的环境、路径等会出现冲突，待重构代码后更新方法。
 
 # 流程
 
@@ -215,20 +220,24 @@ python3 ../XTuner/xtuner/configs/internvl/v1_5/convert_to_official.py ./finetune
 ```
 
 ## 二、RAG检索增强生成
+此处的RAG知识分块仅针对pdf，采取不同粒度的切分，切分长度大小可调整，目前是适合我个人知识库的大小，有关其他格式的文件代码后期会补
 
 - 检索器构建
+此处的检索器构建利用langchain的BM25Retriever和FaissRetriever，向量模型分别用的是m3e、gte、bge、bce，采取多路召回模式
 
 ```mermaid
 graph LR
-    A(知识文档) -- 清洗、切分 --> B(分块文档)
-    B(分块文档) -- bm25、m3e、gte、bge、bce --> C(混合检索器) 
+    A(知识文档) --> B(分块文档)
+    B(分块文档) --> C(混合检索器) 
 ```
 
 - RAG过程
+rerank模型分别使用bge、bce
+
 ```mermaid
 graph LR
-    A(原始问题) -- LLM --> B(原始答案)
-    A(原始问题) -- LLM --> C(改写问题)
+    A(原始问题) --> B(原始答案)
+    A(原始问题) --> C(改写问题)
     A(原始问题) --> D(待检索内容)
     B(原始答案) --> D(待检索内容)
     C(改写问题) --> D(待检索内容)
@@ -239,19 +248,41 @@ graph LR
 ```
 
 - RAG评估
+这里使用自动评分（text2vec相似度分数，权重0.6）和模型评分（GLM4主观评分，权重0.4）进行综合评估。
 ```mermaid
 graph LR
     A(问题) -- RAG --> B(参考的上下文)
-    B(参考的上下文) -- LLM --> C(预测答案)
+    B(参考的上下文) --> C(预测答案)
     C(预测答案) --> E(相似度打分)
     D(正确答案) --> E(相似度打分)
     C(预测答案) --> F(模型打分)
     D(正确答案) --> F(模型打分)
     B(参考的上下文) --> F(模型打分)
 ```
-
+评估的问答对格式如下，有正确答案和无答案比例为5:1左右：
+```
+[
+    {
+        "question": "\n解释LangChain框架的主要功能及其对开发人员在处理语言模型时的优势。\n",
+        "answer": "\nLangChain框架主要提供了一套工具和接口，使开发人员能够更有效地利用语言模型构建端到端的应用程序...\n"
+    },
+    {
+        "question": "巴黎奥运会中国拿了多少个奖牌",
+        "answer": "无答案"
+    },
+    ...
+]
+```
+知识库中的相关文档页数和不相关文档页数比例为34:435，以此添加噪声，测试RAG性能。
+最终RAG得分为：
+|||
+|-|-|
+|自动评分|模型评分|
+|0.893||
 
 ## 三、Agent智能体
+
+Agent智能体代码需要修改，当前效果有很大优化空间。
 
 ```mermaid
 graph LR
@@ -285,8 +316,8 @@ graph LR
 - 解析视频-基于InternVL
 - 更大基座模型
 
-## 七、后记
-本项目是个人的一个学习项目，由于刚刚起步，因此整个项目的架构都还不明晰，包括生成数据的质量和格式都能优化、代码规范和异常处理、微调方式提示构造等都有很大优化空间，效果和理想的有差距。
+## 五、后记
+本项目是个人的一个学习项目，由于刚刚起步，因此整个项目的架构都还不明晰，很多东西都有优化空间，效果和理想的有差距，比如在回答问题时如果说不知道，模型会出现复读机问题。
 
 但随着本人能力的不断迭代和花费的时间不断增多，此项目也会随之优化，期望其能变成一个完整的、有意义的项目。
 

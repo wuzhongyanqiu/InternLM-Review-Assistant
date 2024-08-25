@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from pydantic import BaseModel
 from lmdeploy import pipeline
 from dataclasses import asdict, dataclass
-from typing import Callable, List, Optional
+from typing import Callable, List, Optional, Dict
 import os
 
 current_file_path = os.path.abspath(__file__)
@@ -27,8 +27,27 @@ class GenerationConfig:
     skip_special_tokens: bool = True
     logprobs: int = None
 
+@dataclass
+class PytorchEngineConfig:
+    model_name: str = ''
+    tp: int = 1
+    session_len: int = None
+    max_batch_size: int = 128
+    cache_max_entry_count: float = 0.3
+    eviction_type: str = 'recompute'
+    prefill_interval: int = 16
+    block_size: int = 64
+    num_cpu_blocks: int = 0
+    num_gpu_blocks: int = 0
+    adapters: Dict[str, str] = None
+    max_prefill_token_num: int = 4096
+    thread_safe: bool = False
+    download_dir: str = None
+    revision: str = None
+
 def load_model():
-    model = pipeline(BASE_MODEL_PATH, model_name="internlm2-chat-7b")
+    pytochengineconfig = PytorchEngineConfig()
+    model = pipeline(BASE_MODEL_PATH, model_name="internlm2-chat-7b", backend_config=pytochengineconfig)
     return model
 
 app = FastAPI()

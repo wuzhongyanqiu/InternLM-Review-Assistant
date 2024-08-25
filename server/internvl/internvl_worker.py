@@ -35,5 +35,5 @@ def get_image_chat(image_url: Union[str, List[str]]):
     return responses
 
 if __name__ == "__main__":
-    response = get_image_chat('/root/Mock-Interviewer/datas/pics/pictest.png')
+    response = get_image_chat('/root/InternLM-Interview-Assistant/datas/pics/pictest.png')
     print(response)

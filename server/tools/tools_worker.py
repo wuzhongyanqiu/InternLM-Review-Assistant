@@ -1,5 +1,5 @@
 import sys
-sys.path.append("/root/Mock-Interviewer")
+sys.path.append("/root/InternLM-Interview-Assistant")
 import sqlite3
 from llama_index.llms.huggingface import HuggingFaceLLM
 from llama_index.core.llms import ChatMessage
@@ -64,6 +64,41 @@ def reRank(rerank, top_k, query, bm25_ans, faiss_ans):
         emb_ans = emb_ans + doc.page_content
     return emb_ans
 
+# embedding召回方法
+def embedding_retriever(faissretriever, query):
+    max_length = 2000
+    faiss_context = faissretriever.GetTopK(query, 5)
+    faiss_min_score = 0.0
+    if(len(faiss_context) > 0):
+        faiss_min_score = faiss_context[0][1]
+    cnt = 0
+    emb_ans = ""
+    for doc, score in faiss_context:
+        cnt = cnt + 1
+        # 最长选择max length
+        if(len(emb_ans + doc.page_content) > max_length):
+            break
+        emb_ans = emb_ans + doc.page_content
+        # 最多选择6个
+        if(cnt > 2):
+            break
+    return faiss_context, emb_ans
+
+# 文本召回方法
+def text_retriever(retriever, query):
+    max_length = 2000
+    retriever_context = retriever.GetBM25TopK(query, 5)
+    retriever_ans = ""
+    cnt = 0
+    for doc in retriever_context:
+        cnt = cnt + 1
+        if(len(retriever_ans + doc.page_content) > max_length):
+            break
+        retriever_ans = retriever_ans + doc.page_content
+        if(cnt > 2):
+            break
+    return retriever_context, retriever_ans
+
 class SelectQuestionTool():
     def __init__(self):
         self.description = "用于从数据库查找问题"
@@ -112,22 +147,25 @@ class AnswerEvaluationTool():
         faiss_context4 = self.faiss_retriever4.GetTopK(rag_content, 2)
         faiss_content = [faiss_context1, faiss_context2, faiss_context3, faiss_context4]
         bm25_context = self.bm25.GetBM25TopK(rag_content, 2)      
-        rerank_ans1 = reRank(self.rerank1, 2, rag_content, bm25_context, faiss_context)
+        rerank_ans1 = reRank(self.rerank1, 2, rag_content, bm25_context, faiss_content)
         rerank_ans2 = reRank(self.rerank2, 2, rag_content, bm25_context, faiss_content)
         ans = self.result_prompt.format(query, ans, rerank_ans1)
         return ans
 
     def test_rag(self, query):
-        faiss_context1 = self.faiss_retriever1.GetTopK(query, 2)
-        faiss_context2 = self.faiss_retriever2.GetTopK(query, 2)
-        faiss_context3 = self.faiss_retriever3.GetTopK(query, 2)
-        faiss_context4 = self.faiss_retriever4.GetTopK(query, 2)
-        faiss_content = [faiss_context1, faiss_context2, faiss_context3, faiss_context4]
-        bm25_context = self.bm25.GetBM25TopK(query, 2)      
-        rerank_ans1 = reRank(self.rerank1, 2, query, bm25_context, faiss_context)
-        rerank_ans2 = reRank(self.rerank2, 2, query, bm25_context, faiss_content)
-        return rerank_ans1, rerank_ans2
+        # faiss召回topk
+        faiss_context1, emb_ans1 = embedding_retriever(self.faiss_retriever1, query) 
+        faiss_context2, emb_ans2 = embedding_retriever(self.faiss_retriever2, query) 
+        faiss_context3, emb_ans3 = embedding_retriever(self.faiss_retriever3, query) 
+        faiss_context4, emb_ans4 = embedding_retriever(self.faiss_retriever4, query) 
 
+        # bm2.5召回topk
+        bm25_context, bm25_ans = text_retriever(self.bm25, query)
+
+        faiss_content = [faiss_context1, faiss_context2, faiss_context3, faiss_context4]    
+        rerank_ans1 = reRank(self.rerank1, 2, query, bm25_context, faiss_content)
+        rerank_ans2 = reRank(self.rerank2, 2, query, bm25_context, faiss_content)
+        return rerank_ans1, rerank_ans2, emb_ans1, emb_ans2, emb_ans3, emb_ans4, bm25_ans
 
 class ParsingResumesTool():
     def __init__(self):
