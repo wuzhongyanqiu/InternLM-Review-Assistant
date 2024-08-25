@@ -6,6 +6,81 @@
 # 架构图
 ![架构图](./assets/architecture_diagram.png)
 
+# 代码仓库结构
+```
+InternLM-Interview-Assistant
+|-- LICENSE
+|-- README.md
+|-- agent
+|   |-- arxiv_search.py
+|   |-- baidu_map.py
+|   |-- base_agent.py
+|   |-- google_search.py
+|   |-- resume2webpage.py
+|   `-- weather_search.py
+|-- app.py
+|-- assets
+|   |-- ...
+|-- benchmark
+|   |-- benchmark_lmdeploy.py
+|   `-- benchmark_transformer.py
+|-- config.py
+|-- data_process
+|   |-- convert_data.py
+|   |-- gen_agentdata.py
+|   |-- generate_assistant.py
+|   |-- generate_knowledge.py
+|   |-- generate_multichat.py
+|   `-- merge_json.py
+|-- datas
+|   |-- fintune_data.json
+|   |-- pic_cn.json
+|   |-- pics
+|   |   |-- pictest.png
+|   |   |-- pictest2.png
+|   |   `-- pictest3.png
+|   `-- resumes
+|       `-- resume1.pdf
+|-- environment.yml
+|-- finetune
+|   |-- internlm2_chat_7b_qlora_interview_data.py
+|   `-- internvl_v2_internlm2_2b_qlora_finetune.py
+|-- models
+|   |-- Internlm-Interview-Assistant
+|   `-- Internvl-Interview-Assistant
+|-- rag
+|   |-- bm25_retriever.py
+|   |-- faiss_retriever.py
+|   |-- gen_qa_data.py
+|   |-- parse_knowledge.py
+|   |-- rerank_model.py
+|   |-- test_qa.py
+|   `-- test_score.py
+|-- requirements.txt
+|-- server
+|   |-- asr
+|   |   |-- asr_server.py
+|   |   `-- asr_worker.py
+|   |-- base
+|   |   |-- base_hf.py
+|   |   `-- base_server.py
+|   |-- internvl
+|   |   |-- chat_template.json
+|   |   |-- internvl_server.py
+|   |   |-- internvl_worker.py
+|   |   `-- run.sh
+|   |-- tools
+|   |   |-- tools_prompt.py
+|   |   |-- tools_server.py
+|   |   `-- tools_worker.py
+|   `-- tts
+|       |-- tts_server.py
+|       `-- tts_worker.py
+|-- storage
+`-- web
+    `-- api.py
+```
+
 # 效果 DEMO
 - 上传知识文件(pdf、jpg、png)，生成面试题存入数据库，支持批量上传
 
