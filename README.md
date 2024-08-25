@@ -1,7 +1,7 @@
 # InternLM-Interview-Assistant
-基于InternLM的面试复习助手项目，欢迎大家也来参加书生大模型实战营项目[http://github.com/internLM/tutorial](http://github.com/internLM/tutorial)
+基于 InternLM 的面试复习助手项目，欢迎大家也来参加书生大模型实战营项目[http://github.com/internLM/tutorial](http://github.com/internLM/tutorial)
 
-当前版本的全部代码、微调数据集均开源，RAG数据集由于为本人面试复习整理的资料，仅供个人使用未开源，用户可自行安放个人知识资料。
+当前版本的全部代码、微调数据集均开源，RAG 数据集由于为本人面试复习整理的资料，仅供个人使用未开源，用户可自行安放个人知识资料。
 
 # 架构图
 ![架构图](./assets/architecture_diagram.png)
@@ -16,12 +16,12 @@
 - 上传简历，模拟面试
 
 ![DEMO3](./assets/demo3.png)
-- Agent功能（简历转个人主页尚未完善）
+- Agent 功能（简历转个人主页尚未完善）
 
 ![DEMO4](./assets/demo4.png)
 ![DEMO5](./assets/demo5.png)
 
-- 支持TTS、ASR，无效果图
+- 支持 TTS、ASR，无效果图(中英夹杂效果待优化)
 
 # 快速使用
 
@@ -57,7 +57,7 @@ uvicorn server.tools.tools_server:app --host 0.0.0.0 --port 8004
 lmdeploy serve api_server ./models/Internvl-Interview-Assistant --cache-max-entry-count 0.2 --backend turbomind --server-port 8005 --chat-template ./server/internvl/chat_template.json
 ```
 
-对于 Interview-Assistant 服务，由于使用的是 LMdeploy 部署，其默认 kv-cache 缓存为剩余显存的0.8，这样在开启其他服务时会出现abort的情况，在此改为0.3。
+对于 Interview-Assistant 服务，由于使用的是 LMdeploy 部署，其默认 kv-cache 缓存为剩余显存的0.8，这样在开启其他服务时会出现 abort 的情况，在此改为0.3。
 
 当前快速使用方法的环境、路径等会出现冲突，待重构代码后更新方法。
 
@@ -215,7 +215,7 @@ lmdeploy lite auto_awq ./work_dirs/internlm2_chat_7b_qlora_interview_data/iter_2
 python ./benchmark/benchmark_transformer.py
 python ./benchmark/benchmark_lmdeploy.py 
 ```
-得到速度对比，可以看到使用LMdeploy的Turbomind和4bit量化模型可以明显提升推理速度。
+得到速度对比，可以看到使用 LMdeploy 的 Turbomind 和 4bit 量化模型可以明显提升推理速度。
 ||||
 |-|-|-|
 |Model|Toolkit|speed(words/s)
@@ -235,11 +235,11 @@ python3 ../XTuner/xtuner/configs/internvl/v1_5/convert_to_official.py ./finetune
 ```
 
 ## 二、RAG检索增强生成
-此处的RAG知识分块仅针对pdf，采取不同粒度的切分，切分长度大小可调整，目前是适合我个人知识库的大小，有关其他格式的文件代码后期会补
+此处的 RAG 知识分块仅针对 pdf ，采取不同粒度的切分，切分长度大小可调整，目前是适合我个人知识库的大小，有关其他格式的文件代码后期会补
 
 - 检索器构建
 
-此处的检索器构建利用langchain的BM25Retriever和FaissRetriever，向量模型分别用的是m3e、gte、bge、bce，采取多路召回模式
+此处的检索器构建利用 langchain 的 BM25Retriever 和 FaissRetriever，向量模型分别用的是 m3e、gte、bge、bce，采取多路召回模式
 
 ```mermaid
 graph LR
@@ -249,7 +249,7 @@ graph LR
 
 - RAG过程
 
-rerank模型分别使用bge、bce
+rerank 模型分别使用 bge、bce
 
 ```mermaid
 graph LR
@@ -266,7 +266,7 @@ graph LR
 
 - RAG评估
 
-这里使用自动评分（text2vec相似度分数，权重0.6）和模型评分（GLM4主观评分，权重0.4）进行综合评估。
+这里使用自动评分（text2vec 相似度分数）和模型评分（GLM4 主观评分）进行综合评估。
 
 ```mermaid
 graph LR
@@ -294,16 +294,17 @@ graph LR
 ]
 ```
 
-知识库中的相关文档页数和不相关文档页数比例为34:435，以此添加噪声，测试RAG性能。
+知识库中的相关文档页数和不相关文档页数比例为34:435，以此添加噪声，测试 RAG 性能。
 
-最终RAG得分为：
+最终 RAG 得分为：
+|||
 |-|-|
 |自动评分|模型评分|
-|0.893||
+|0.893|0.783|
 
 ## 三、Agent智能体
 
-Agent智能体代码需要修改，当前效果有很大优化空间。
+Agent 智能体代码需要修改，当前效果有很大优化空间。
 
 ```mermaid
 graph LR
@@ -314,18 +315,18 @@ graph LR
     E(工具结果) -- 观察 --> F(最终结果)
 ```
 
-实现如下Agent功能：
+实现如下 Agent 功能：
 - 搜索引擎：利用搜索引擎回答问题
 - 实时天气：查询某个地点实时天气
 - 地点周边：查询某个地点的周边环境
-- 论文搜索：arxiv论文搜索
+- 论文搜索：arxiv 论文搜索
 - 主页生成：根据简历生成个人主页
 
 ## 四、计划
 - 重构代码
 - 数据集优化
 - 微调模式
-- agent指令微调
+- agent 指令微调
 - function call
 - 数字人
 - 语音文本的中英文夹杂优化
@@ -334,18 +335,20 @@ graph LR
 - 知识图谱
 - 安卓端部署
 - 语音交流-QwenAudio
-- 解析视频-基于InternVL
+- 解析视频-基于 InternVL
 - 更大基座模型
 
 ## 五、更新记录
-- [2024.08.16] 完成初版模型，支持一些简单功能
-- [2024.08.23] 优化微调数据，优化初版模型，添加InternVL内容
+- [2024.08.25] 改变 RAG 方式，增加评估
+- [2024.08.23] 添加 InternVL 内容，更改微调数据和功能逻辑，重构题库出题、评估答案功能，支持自行上传知识文件生成题库
+- [2024.08.16] 优化数据、模型，支持模拟面试功能，添加 Agent 功能
+- [2024.08.06] 微调初版模型，支持题库出题、评估答案功能
 
 ## 六、后记
 本项目是个人的一个学习项目，由于刚刚起步，因此整个项目的架构都还不明晰，很多东西都有优化空间，效果和理想的有差距，比如在回答问题时如果说不知道，模型会出现复读机问题。
 
 随着本人能力的不断迭代和花费的时间不断增多，此项目也会随之优化，期望其能变成一个完整的、有意义的项目。
 
-作为一个刚入门几个月的新手，把学到的知识利用起来，转换为自己的兴趣是很有意义的事情，非常感谢上海人工智能实验室主办的书生大模型实战营，为本人做一个属于自己的开源项目提供了丰富的算力和技术支持，非常感谢！
+作为一个刚入门几个月的新手，把学到的知识利用起来，转换为自己的兴趣是很棒的事情，非常感谢上海人工智能实验室主办的书生大模型实战营，为本人做一个属于自己的开源项目提供了丰富的算力和技术支持，非常感谢实战营的佬们的各种代码和思路，非常感谢各家模型的免费的 token！
 
-项目存在很多问题，但如果有所帮助，希望佬能点一个star。
+项目存在很多问题，望见谅，如果有所帮助，希望佬能点一个 star。
