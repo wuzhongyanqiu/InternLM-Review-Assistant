@@ -9,22 +9,22 @@
 # 代码仓库结构
 更新中
 
-# 效果 DEMO
+# 效果 DEMO（待更新）
 - 上传知识文件(pdf、jpg、png)，生成面试题存入数据库，支持批量上传
 
 ![DEMO1](./assets/demo1.png)
-- 抽取面试题，改写后提问，使用RAG评估答案
+- 抽取面试题，改写后提问，使用 RAG 评估答案
 
 ![DEMO2](./assets/demo2.png)
 - 上传简历，模拟面试
 
 ![DEMO3](./assets/demo3.png)
-- Agent 功能（简历转个人主页尚未完善）
+- Agent 功能
 
 ![DEMO4](./assets/demo4.png)
 ![DEMO5](./assets/demo5.png)
 
-- 支持 TTS、ASR，无效果图(中英夹杂效果待优化)
+- 支持 TTS、ASR
 
 # 快速使用
 
@@ -39,30 +39,7 @@ streamlit run app.py
 ```
 
 ## 前后端分离启动
-- ASR服务：
-```bash
-uvicorn server.asr.asr_server:app --host 0.0.0.0 --port 8001
-```
-- TTS服务：
-```bash
-uvicorn server.tts.tts_server:app --host 0.0.0.0 --port 8002
-```
-- InternLM-Interview-Assistant服务：
-```bash
-uvicorn server.base.base_server:app --host 0.0.0.0 --port 8003
-```
-- RAG等工具的服务：
-```bash
-uvicorn server.tools.tools_server:app --host 0.0.0.0 --port 8004
-```
-- InternVL-Interview-Assistant服务：
-```bash
-lmdeploy serve api_server ./models/Internvl-Interview-Assistant --cache-max-entry-count 0.2 --backend turbomind --server-port 8005 --chat-template ./server/internvl/chat_template.json
-```
-
-对于 Interview-Assistant 服务，由于使用的是 LMdeploy 部署，其默认 kv-cache 缓存为剩余显存的0.8，这样在开启其他服务时会出现 abort 的情况，在此改为0.3。
-
-当前快速使用方法的环境、路径等会出现冲突，待重构代码后更新方法。
+- 见 `deploy.sh`
 
 # 流程
 
@@ -196,7 +173,7 @@ lmdeploy serve api_server ./models/Internvl-Interview-Assistant --cache-max-entr
 ```
 
 ### 训练和部署
-#### InternLM2-chat-7b
+#### InternLM2_5-chat-7b
 1. 将`./finetune/internlm2_chat_7b_qlora_interview_data.py`中的数据集路径和模型路径替换为本地路径，其余参数根据需求和资源调整。
 2. 使用命令进行训练，自定义评估问题，可以手动早停：
 ```
@@ -219,7 +196,7 @@ xtuner convert merge ./models/internlm2_5-chat-7b \
 5. Imdeploy部署-可选
 ```
 pip install lmdeploy
-python -m lmdeploy.pytorch.chat ./work_dirs/internlm2_chat_7b_qlora_interview_data/iter_250_merge  \
+python -m lmdeploy.pytorch.chat ./models/InternLM-Interview-Assistant  \
     --max_new_tokens 256 \
     --temperture 0.8 \
     --top_p 0.95 \
@@ -227,7 +204,7 @@ python -m lmdeploy.pytorch.chat ./work_dirs/internlm2_chat_7b_qlora_interview_da
 ```
 6. 进行4bit量化-可选
 ```
-lmdeploy lite auto_awq ./work_dirs/internlm2_chat_7b_qlora_interview_data/iter_250_merge --work-dir ./work_dirs/internlm2_chat_7b_qlora_interview_data/iter_250_merge_4bit
+lmdeploy lite auto_awq ./models/InternLM-Interview-Assistant --work-dir ./models/InternLM-Interview-Assistant-4bit
 ```
 7. 测试速度-可选
 ```
