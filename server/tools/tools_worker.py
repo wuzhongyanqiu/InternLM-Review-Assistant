@@ -1,8 +1,6 @@
 import sys
-sys.path.append("/root/InternLM-Interview-Assistant")
+sys.path.append("/root/Mock-Interviewer")
 import sqlite3
-from llama_index.llms.huggingface import HuggingFaceLLM
-from llama_index.core.llms import ChatMessage
 from rag.rerank_model import reRankLLM
 from rag.faiss_retriever import FaissRetriever
 from rag.bm25_retriever import BM25
@@ -23,11 +21,11 @@ DB_PATH = os.path.join(current_dir, "../../storage/db_questions.db")
 EMBED_MODEL1_PATH = "moka-ai/m3e-base"
 EMBED_MODEL2_PATH = "thenlper/gte-large"
 EMBED_MODEL3_PATH = "BAAI/bge-large-zh-v1.5"
-EMBED_MODEL4_PATH = "maidalun1020/bce-embedding-base_v1"
+EMBED_MODEL4_PATH = "/root/models/bce-embedding-base_v1"
 
 # rerank model路径
 RERANK_MODEL1_PATH = "BAAI/bge-reranker-large"
-RERANK_MODEL2_PATH = "maidalun1020/bce-reranker-base_v1"
+RERANK_MODEL2_PATH = "/root/models/bce-reranker-base_v1"
 
 # 处理文件路径
 DATAS_FOLDER_PATH = os.path.join(current_dir, "../../datas/")
@@ -119,7 +117,7 @@ class SelectQuestionTool():
 class AnswerEvaluationTool():
     def __init__(self):
         self.description = "用于调用RAG得到相关的上下文"
-        self.result_prompt = interview_prompt_template
+        self.result_prompt = interview_prompt_input
 
         self.embed_model1_path = EMBED_MODEL1_PATH
         self.embed_model2_path = EMBED_MODEL2_PATH

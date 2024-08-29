@@ -1,85 +1,13 @@
 # InternLM-Interview-Assistant
 基于 InternLM 的面试复习助手项目，欢迎大家也来参加书生大模型实战营项目[http://github.com/internLM/tutorial](http://github.com/internLM/tutorial)
 
-当前版本的全部代码、微调数据集均开源，RAG 数据集由于为本人面试复习整理的资料，仅供个人使用未开源，用户可自行安放个人知识资料。
+当前版本的全部代码、微调数据集均开源，知识库文件为用户自行上传，面试题库可由知识库文件生成而来，也可自行上传精确的题库。
 
 # 架构图
 ![架构图](./assets/architecture_diagram.png)
 
 # 代码仓库结构
-```
-InternLM-Interview-Assistant
-|-- LICENSE
-|-- README.md
-|-- agent
-|   |-- arxiv_search.py
-|   |-- baidu_map.py
-|   |-- base_agent.py
-|   |-- google_search.py
-|   |-- resume2webpage.py
-|   `-- weather_search.py
-|-- app.py
-|-- assets
-|   |-- ...
-|-- benchmark
-|   |-- benchmark_lmdeploy.py
-|   `-- benchmark_transformer.py
-|-- config.py
-|-- data_process
-|   |-- convert_data.py
-|   |-- gen_agentdata.py
-|   |-- generate_assistant.py
-|   |-- generate_knowledge.py
-|   |-- generate_multichat.py
-|   `-- merge_json.py
-|-- datas
-|   |-- fintune_data.json
-|   |-- pic_cn.json
-|   |-- pics
-|   |   |-- pictest.png
-|   |   |-- pictest2.png
-|   |   `-- pictest3.png
-|   `-- resumes
-|       `-- resume1.pdf
-|-- environment.yml
-|-- finetune
-|   |-- internlm2_chat_7b_qlora_interview_data.py
-|   `-- internvl_v2_internlm2_2b_qlora_finetune.py
-|-- models
-|   |-- Internlm-Interview-Assistant
-|   `-- Internvl-Interview-Assistant
-|-- rag
-|   |-- bm25_retriever.py
-|   |-- faiss_retriever.py
-|   |-- gen_qa_data.py
-|   |-- parse_knowledge.py
-|   |-- rerank_model.py
-|   |-- test_qa.py
-|   `-- test_score.py
-|-- requirements.txt
-|-- server
-|   |-- asr
-|   |   |-- asr_server.py
-|   |   `-- asr_worker.py
-|   |-- base
-|   |   |-- base_hf.py
-|   |   `-- base_server.py
-|   |-- internvl
-|   |   |-- chat_template.json
-|   |   |-- internvl_server.py
-|   |   |-- internvl_worker.py
-|   |   `-- run.sh
-|   |-- tools
-|   |   |-- tools_prompt.py
-|   |   |-- tools_server.py
-|   |   `-- tools_worker.py
-|   `-- tts
-|       |-- tts_server.py
-|       `-- tts_worker.py
-|-- storage
-`-- web
-    `-- api.py
-```
+更新中
 
 # 效果 DEMO
 - 上传知识文件(pdf、jpg、png)，生成面试题存入数据库，支持批量上传
@@ -138,13 +66,28 @@ lmdeploy serve api_server ./models/Internvl-Interview-Assistant --cache-max-entr
 
 # 流程
 
-## 一、微调 InternLM2-chat-7b 和 InternVL2-2b
+## 一、微调 InternLM2_5-chat-7b 和 InternVL2-2b
 ### 数据集构建
-#### InternLM2-chat-7b
+#### InternLM2_5-chat-7b
 
-本项目当前版本的数据集采用个人整理总结的大模型面试相关数据和 ChatGLM & Qwen & Erniebot 的生成数据集，数据集格式如下：
+本项目当前版本的数据集采用个人整理总结的面试相关数据和 ChatGLM & Qwen & Erniebot 的生成数据集(8k)，数据集格式如下：
 
-- 多轮对话数据
+- 单轮对话数据(3k)
+```
+[
+    {
+        "conversation": [
+            {
+                "system": "\n- Role: 专业面试官\n- Background: 面试官需要根据'面试问题'、'面试者的回答'和提供的上下文信息，进行评估和反馈...",
+                "input": "\n\n- 面试问题：\n面试题2：在自然语言处理中，如何有效地利用上下文信息来提高语言模型的推理能力？\n \n- 面试者的回答：\n通过深度学习技术和上下文嵌入...\n\n- 提供的上下文信息：\n为了更好地满足长文本需求...",
+                "output": "- 面试官的评估：\n\n面试者的回答提到了通过Transformer的注意力机制来捕获上下文信息，这是一个正确的方向..."
+            }
+        ]
+    },
+...
+]
+```
+- 多轮对话数据(2k)
 ```
 [
     {
@@ -179,7 +122,7 @@ lmdeploy serve api_server ./models/Internvl-Interview-Assistant --cache-max-entr
 ...
 ]
 ```
-- 自我认知数据
+- 自我认知数据(0.5k)
 ```
 [
     {
@@ -193,14 +136,13 @@ lmdeploy serve api_server ./models/Internvl-Interview-Assistant --cache-max-entr
 ...
 ]
 ```
-- 指令数据
+- 指令数据(0.5k)
 ```
 [
     {
         "conversation": [
             {
-                "system": "\n        你是一个可以调用工具的智能助手。请根据\"当前问题\"，调用工具收集信息并回复问题，你可以使用如下工具：\n\n        <|tool_start|>{{\"name\": \"arxivsearch\", \"description\": \"用于查找论文，输入论文关键词，返回查找到的论文结果\", \"parameters\": {{\"keyword\": 你要查找的论文关键字}}}}<|tool_end|><|tool_start|>{{\"name\": \"baidu_map\", \"description\": \"用于查找给定地点附近的酒店等\", \"parameters\": {{\"location\": 你要查找的地点, \"target\": 你要查找的内容}}}}<|tool_end|><|tool_start|>{{\"name\": \"weather_search\", \"description\": \"用于查找给定地点的当前实时天气\", \"parameters\": {{\"location\": 你要查找的地点}}}}<|tool_end|><|tool_start|>{{\"name\": \"google_search\", \"description\": \"用于使用搜索引擎搜索相关信息\", \"parameters\": {{\"searchcontent\": 你要搜索的内容}}}}<|tool_end|><|tool_start|>{{\"name\": \"resume_to_webpage\", \"description\": \"用于将简历转换成个人网页\", \"parameters\": {{}}}}<|tool_end|>\n\n        ## 回复格式\n\n        调用工具时，请按照以下格式：\n        ```\n        你的思考过程...<|action_start|><|plugin|>{\"name\": \"tool_name\", \"parameters\": {\"param1\": \"value1\"}}<|action_end|>\n        ```\n\n        当你已经调用工具获取到信息时，直接回答问题！\n        注意你可以使用的工具，不要随意捏造！\n        如果没有可以使用的工具，按照原本的知识进行回答！\n        ",
-                "input": "首都国际机场周边有哪些手表制造厂？",
+                "system": "\n        你是一个可以调用工具的智能助手。请根据\"当前问题\"，调用工具收集信息并回复问题，你可以使用如下工具...",
                 "output": "{\"name\": \"baidu_map\", \"parameters\": {\"location\": \"首都国际机场\", \"target\": \"手表制造厂\"}}"
             }
         ]
@@ -218,7 +160,7 @@ lmdeploy serve api_server ./models/Internvl-Interview-Assistant --cache-max-entr
 ```
 #### InternVL2-2b
 
-本项目当前版本的数据集采用个人整理总结的面试相关图片和 GLM-4V 生成的数据，数据集格式如下：
+本项目当前版本的数据集采用个人整理总结的面试相关图片和 GLM-4V 生成的数据(0.5k)，数据集格式如下：
 
 - 指令数据
 ```
@@ -265,12 +207,14 @@ xtuner train ./finetune/internlm2_chat_7b_qlora_interview_data.py --deepspeed de
 export MKL_SERVICE_FORCE_INTEL=1
 export MKL_THREADING_LAYER=GNU
 xtuner convert pth_to_hf ./finetune/internlm2_chat_7b_qlora_interview_data.py \
-                         ./work_dirs/internlm2_chat_7b_qlora_interview_data/iter_250.pth \
-                         ./work_dirs/internlm2_chat_7b_qlora_interview_data/iter_250_hf
+                         ./work_dirs/internlm2_chat_7b_qlora_interview_data/iter_{}.pth \
+                         ./work_dirs/internlm2_chat_7b_qlora_interview_data/iter_{}_hf
 ```
 4. 合并模型：
 ```
-xtuner convert merge ./models/internlm2-chat-7b ./work_dirs/internlm2_chat_7b_qlora_interview_data/iter_250_hf ./work_dirs/internlm2_chat_7b_qlora_interview_data/iter_250_merge --max-shard-size 2GB
+xtuner convert merge ./models/internlm2_5-chat-7b \
+./work_dirs/internlm2_chat_7b_qlora_interview_data/iter_{}_hf \
+./models/InternLM-Interview-Assistant --max-shard-size 2GB
 ```
 5. Imdeploy部署-可选
 ```
@@ -309,8 +253,8 @@ NPROC_PER_NODE=1 xtuner train ./finetune/internvl_v2_internlm2_2b_qlora_finetune
 python3 ../XTuner/xtuner/configs/internvl/v1_5/convert_to_official.py ./finetune/internvl_v2_internlm2_2b_qlora_finetune.py ./work_dirs/internvl_v2_internlm2_2b_qlora/internvl_ft_run_8_filter/iter_{?}.pth ./models/InternVL2-2B/
 ```
 
-## 二、RAG检索增强生成
-此处的 RAG 知识分块仅针对 pdf ，采取不同粒度的切分，切分长度大小可调整，目前是适合我个人知识库的大小，有关其他格式的文件代码后期会补
+## 二、RAG 检索增强生成
+RAG 知识库为用户上传的知识文档的集合(pdf、md、html、docx、txt、pptx等)，测试使用知识库为本人收集整理的相关文档。 
 
 - 检索器构建
 
@@ -379,8 +323,6 @@ graph LR
 
 ## 三、Agent智能体
 
-Agent 智能体代码需要修改，当前效果有很大优化空间。
-
 ```mermaid
 graph LR
     A(问题) --> B(代理)
@@ -414,6 +356,9 @@ graph LR
 - 更大基座模型
 
 ## 五、更新记录
+- [2024.08.31] 增加一键开启后端脚本，重构代码，应用上传至 OpenXLab 浦源
+- [2024.08.30] 更改 TTS 方式为 ChatTTS，支持用户自行选择 TTS 参数，支持实时文本转语音；更改 InternLM-Interview-Assistant 的推理格式
+- [2024.08.29] 更改 InternLM 微调数据集，基座模型由 InternLM2-chat-7b 更改为 InternLM2_5-chat-7b；题库生成和 RAG 增加支持多种文件格式
 - [2024.08.25] 改变 RAG 方式，增加评估
 - [2024.08.23] 添加 InternVL 内容，更改微调数据和功能逻辑，重构题库出题、评估答案功能，支持自行上传知识文件生成题库
 - [2024.08.16] 优化数据、模型，支持模拟面试功能，添加 Agent 功能
