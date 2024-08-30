@@ -29,6 +29,10 @@ async def get_tools_res(tools_item: ToolsItem):
     else:
         return {"result": "没有这个工具！"}
 
+@app.post("/tools/gen_database")
+async def get_tools_res():
+    answerevaluationtool.gen_database()
+
 @app.get("/check")
 async def get_check():
     return "tools server 成功开启！"

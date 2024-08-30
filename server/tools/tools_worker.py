@@ -28,7 +28,7 @@ RERANK_MODEL1_PATH = "BAAI/bge-reranker-large"
 RERANK_MODEL2_PATH = "/root/models/bce-reranker-base_v1"
 
 # 处理文件路径
-DATAS_FOLDER_PATH = os.path.join(current_dir, "../../datas/")
+DATAS_FOLDER_PATH = os.path.join(current_dir, "../../storage/knowledge")
 
 # 持久化路径
 PERSIST_PATH = os.path.join(current_dir, "../../storage/")
@@ -100,18 +100,19 @@ def text_retriever(retriever, query):
 class SelectQuestionTool():
     def __init__(self):
         self.description = "用于从数据库查找问题"
-        self.result_prompt = transquestion_prompt_template
 
     def reply(self) -> str:
-        conn = sqlite3.connect(DB_PATH)
-        cursor = conn.cursor()
-        cursor.execute(f"SELECT * FROM questions ORDER BY RANDOM() LIMIT 1")
-        result = cursor.fetchone()
-        cursor.close()
-        conn.close()
-        response_str = result[1].strip()
-        ans = transquestion_prompt_template.format(response_str)
-
+        try:
+            conn = sqlite3.connect(DB_PATH)
+            cursor = conn.cursor()
+            cursor.execute(f"SELECT * FROM questions ORDER BY RANDOM() LIMIT 1")
+            result = cursor.fetchone()
+            cursor.close()
+            conn.close()
+            response_str = result[1].strip()
+            ans = response_str
+        except:
+            ans = "你还未构建问题数据库"
         return ans
 
 class AnswerEvaluationTool():
@@ -123,13 +124,15 @@ class AnswerEvaluationTool():
         self.embed_model2_path = EMBED_MODEL2_PATH
         self.embed_model3_path = EMBED_MODEL3_PATH
         self.embed_model4_path = EMBED_MODEL4_PATH
-        self.data = process_folder(DATAS_FOLDER_PATH)
         self.rerank_path1 = RERANK_MODEL1_PATH
         self.rerank_path2 = RERANK_MODEL2_PATH
         self.persist_path1 = PERSIST_PATH + self.embed_model1_path
         self.persist_path2 = PERSIST_PATH + self.embed_model2_path 
         self.persist_path3 = PERSIST_PATH + self.embed_model3_path 
         self.persist_path4 = PERSIST_PATH + self.embed_model4_path 
+
+    def gen_database(self):
+        self.data = process_folder(DATAS_FOLDER_PATH)
         self.faiss_retriever1 = FaissRetriever(self.embed_model1_path, self.data, self.persist_path1)
         self.faiss_retriever2 = FaissRetriever(self.embed_model2_path, self.data, self.persist_path2)
         self.faiss_retriever3 = FaissRetriever(self.embed_model3_path, self.data, self.persist_path3)

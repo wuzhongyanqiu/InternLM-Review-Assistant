@@ -193,7 +193,7 @@ xtuner convert merge ./models/internlm2_5-chat-7b \
 ./work_dirs/internlm2_chat_7b_qlora_interview_data/iter_{}_hf \
 ./models/InternLM-Interview-Assistant --max-shard-size 2GB
 ```
-5. Imdeploy部署-可选
+5. Imdeploy 部署-可选
 ```
 pip install lmdeploy
 python -m lmdeploy.pytorch.chat ./models/InternLM-Interview-Assistant  \
@@ -202,7 +202,7 @@ python -m lmdeploy.pytorch.chat ./models/InternLM-Interview-Assistant  \
     --top_p 0.95 \
     --seed 0
 ```
-6. 进行4bit量化-可选
+6. 进行 4bit 量化-可选
 ```
 lmdeploy lite auto_awq ./models/InternLM-Interview-Assistant --work-dir ./models/InternLM-Interview-Assistant-4bit
 ```
