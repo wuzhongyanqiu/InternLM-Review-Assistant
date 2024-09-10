@@ -14,12 +14,12 @@
 ## 演示视频
 
 ## 快速开始
-- 1. clone 本项目至本地开发机
+1. clone 本项目至本地开发机
 ```bash
 git clone https://github.com/wuzhongyanqiu/InternLM-Interview-Assistant.git
 ```
 
-- 2. 配置环境
+2. 配置环境
 ```
 # 创建虚拟环境
 conda create -n interview-assistant python=3.10
@@ -30,16 +30,17 @@ cd InternLM-Interview-Assistant
 pip install -r requirements.txt
 ```
 
-- 3. 启动
+3. 启动
 ```
 python app.py
 ```
 
-- 4. 示例效果
+4. 示例效果
 
 ## 思路讲解视频
 
 
 ## 后记
 本项目是个人的一个学习项目，项目还未完善，在不断优化中，如有帮助，希望能被 star
+
 当前版本进行了重大重构，老版本可查看几周前的 Commit 历史
