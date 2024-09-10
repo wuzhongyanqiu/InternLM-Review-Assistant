@@ -1,1 +1,0 @@
-lmdeploy serve api_server ./models/InternVL2-2B --cache-max-entry-count 0.2 --backend turbomind --server-port 8005 --chat-template ./server/internvl/chat_template.json
