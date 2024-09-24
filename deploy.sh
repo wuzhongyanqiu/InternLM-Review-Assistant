@@ -15,7 +15,7 @@ nohup lmdeploy serve api_server ./models/InternVL-Interview-Assistant --cache-ma
 # InternLM
 nohup lmdeploy serve api_server ./models/InternLM-Interview-Assistant --cache-max-entry-count 0.1 --model-name internlm2_5-7b-chat > ./log/internlm.out 2>&1 &
 # lmdeploy serve api_server /root/share/new_models/Shanghai_AI_Laboratory/internlm2_5-7b-chat --cache-max-entry-count 0.1 --model-name internlm2_5-7b-chat
-
+# internlm2_5-20b-chat
 # RAG
 nohup uvicorn server.tools.tools_server:app --host 0.0.0.0 --port 8004 > ./log/rag.out 2>&1 &
 # cd lagent/server
