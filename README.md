@@ -36,6 +36,8 @@ python app.py
 ```
 
 4. 示例效果
+![demo1](./assets/demo1.png)
+![demo2](./assets/demo2.png)
 
 ## 思路讲解视频
 待更新
@@ -46,15 +48,16 @@ python app.py
 - [MinerU](https://github.com/opendatalab/MinerU) 将 PDF 文件转换为 markdown 格式。
 - 切分文档，利用 InternLM 和 Faiss 生成问题数据库和知识文件向量库。
 
-2. 关键词查找问题，RAG 答案评估
+2. 关键词查找问题，RAG 答案评估，搜索引擎增强生成
 - 关键词查找问题使用 SQL 语句和 InternLM 筛选。
-- 答案评估使用 BM25Retriever 和 FaissRetriever，采取多路召回模式，向量模型分别用的是 m3e、gte、bge、bce。
+- 答案评估使用 BM25Retriever 和 FaissRetriever，采取多路召回模式。
+- 调用搜索引擎 API 增强生成。
 
 3. 生成虚拟简历
 - 使用 GPT4O 生成符合格式要求的虚拟简历，在读取过程中再次利用 InternLM 摘要总结。
 
 4. 构建多轮对话数据，合成数据来源于 InternLM & DeepSeek
-- 构建多轮对话指令数据集，其具体数据格式分两种，一是快问快答多轮对话格式(3k)，二是模拟面试多轮对话格式(2k)
+- 构建多轮对话指令数据集，其具体数据格式分两种，一是快问快答多轮对话格式，二是模拟面试多轮对话格式
 - 数据格式为：
 ```
 [
@@ -79,7 +82,7 @@ python app.py
     ...
 ]
 ```
-- 详细数据见 finetune/finetune_data.json
+- 详细数据见 finetune/finetune_datas.json
 
 ## 微调流程
 1. 将`./finetune/internlm2_chat_7b_qlora_interview_data.py`中的数据集路径和模型路径替换为本地路径，其余参数根据需求和资源调整。
