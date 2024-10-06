@@ -20,13 +20,13 @@ EMBED_MODEL_PATHS = {
     "model1": "moka-ai/m3e-base",
     "model2": "thenlper/gte-large",
     "model3": "BAAI/bge-large-zh-v1.5",
-    "model4": "/root/models/bce-embedding-base_v1"
+    "model4": "./models/bce-embedding-base_v1"
 }
 
 # rerank model路径
 RERANK_MODEL_PATHS = {
     "rerank1": "BAAI/bge-reranker-large",
-    # "rerank2": "/root/models/bce-reranker-base_v1"
+    # "rerank2": "./models/bce-reranker-base_v1"
 }
 
 def reRank(rerank, top_k, query, deduplicated_results):
