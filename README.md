@@ -11,8 +11,8 @@
 
 ![架构图](./assets/architecture_diagram.jpeg)
 
-## 演示视频
-
+## 演示视频(配音和字幕待更新)
+![b站视频](./assets/demonstrate.gif)
 ## 快速开始
 1. clone 本项目至本地开发机
 ```bash
@@ -38,7 +38,7 @@ python app.py
 4. 示例效果
 
 ## 思路讲解视频
-
+待更新
 ## 微调数据集构建流程
 
 1. 处理知识文件
@@ -138,6 +138,7 @@ InternLM-Interview-Assistant|LMDeploy(Turbomind)|145.431
 InternLM-Interview-Assistant-4bit|LMDeploy(Turbomind)|343.990
 
 ## DPO 数据集构建
+```
 - 数据格式为：
 {
   "prompt": [
@@ -171,9 +172,10 @@ InternLM-Interview-Assistant-4bit|LMDeploy(Turbomind)|343.990
     }
   ]
 }
+```
 - 详细数据见 dpo/dpo_datas.jsonl
 
 ## 后记
 本项目是个人的一个学习项目，项目还未完善，在不断优化中，如有帮助，希望能被 star
 
-当前版本进行了重大重构，老版本可查看几周前的 Commit 历史
+当前版本为2.0版本，与1.0版本有很大不同
